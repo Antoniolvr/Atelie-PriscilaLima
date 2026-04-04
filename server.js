@@ -31,7 +31,9 @@ function getPayPalBaseUrl() {
 }
 
 async function getPayPalAccessToken() {
-  const auth = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString("base64");
+  const auth = Buffer.from(
+    `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+  ).toString("base64");
 
   const response = await fetch(`${getPayPalBaseUrl()}/v1/oauth2/token`, {
     method: "POST",
@@ -43,6 +45,7 @@ async function getPayPalAccessToken() {
   });
 
   const data = await response.json();
+
   if (!response.ok) {
     console.error("Erro ao obter access token PayPal:", data);
     throw new Error("Não foi possível autenticar no PayPal.");
@@ -86,11 +89,13 @@ function calcTotals(items) {
 
 function validateCustomer(customer = {}) {
   const required = ["name", "phone", "email", "address"];
+
   for (const field of required) {
     if (!String(customer[field] || "").trim()) {
       throw new Error(`Campo obrigatório ausente: ${field}`);
     }
   }
+
   return {
     name: String(customer.name).trim(),
     phone: String(customer.phone).trim(),
@@ -165,10 +170,13 @@ app.post("/api/paypal/create-order", async (req, res) => {
 
     if (!response.ok) {
       console.error("Erro create-order PayPal:", data);
-      return res.status(400).json({ error: "Falha ao criar pedido no PayPal.", details: data });
-
-      const approvalLink = data.links?.find(link => link.rel === "approve");
+      return res.status(400).json({
+        error: "Falha ao criar pedido no PayPal.",
+        details: data
+      });
     }
+
+    const approvalLink = data.links?.find(link => link.rel === "approve");
 
     orders.set(data.id, {
       paypalOrderId: data.id,
@@ -179,19 +187,22 @@ app.post("/api/paypal/create-order", async (req, res) => {
       totals
     });
 
-    res.json({
+    return res.json({
       orderId: data.id,
       approvalUrl: approvalLink?.href || null
     });
   } catch (error) {
     console.error("Erro create-order local:", error);
-    res.status(400).json({ error: error.message || "Erro ao criar pedido." });
+    return res.status(400).json({
+      error: error.message || "Erro ao criar pedido."
+    });
   }
 });
 
 app.post("/api/paypal/capture-order", async (req, res) => {
   try {
     const { orderId, customer } = req.body;
+
     if (!orderId) {
       throw new Error("orderId é obrigatório.");
     }
@@ -213,11 +224,12 @@ app.post("/api/paypal/capture-order", async (req, res) => {
 
     const data = await response.json();
 
-  const approvalLink = data.links?.find(link => link.rel === "approve");
-
     if (!response.ok) {
       console.error("Erro capture-order PayPal:", data);
-      return res.status(400).json({ error: "Falha ao capturar pagamento.", details: data });
+      return res.status(400).json({
+        error: "Falha ao capturar pagamento.",
+        details: data
+      });
     }
 
     const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
@@ -245,7 +257,7 @@ app.post("/api/paypal/capture-order", async (req, res) => {
       customer: customer ? validateCustomer(customer) : existingOrder.customer
     });
 
-    res.json({
+    return res.json({
       success: true,
       localOrderId,
       paypalOrderId: orderId,
@@ -253,7 +265,9 @@ app.post("/api/paypal/capture-order", async (req, res) => {
     });
   } catch (error) {
     console.error("Erro capture-order local:", error);
-    res.status(400).json({ error: error.message || "Erro ao capturar pedido." });
+    return res.status(400).json({
+      error: error.message || "Erro ao capturar pedido."
+    });
   }
 });
 
@@ -261,12 +275,6 @@ app.post("/api/paypal/capture-order", async (req, res) => {
 app.post("/api/paypal/webhook", (req, res) => {
   console.log("Webhook PayPal recebido:", JSON.stringify(req.body, null, 2));
   res.sendStatus(200);
-});
-
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "atelie-priscila-lima-profissional.html"));
 });
 
 app.get("/paypal-return", async (req, res) => {
@@ -308,7 +316,9 @@ app.get("/paypal-return", async (req, res) => {
     }
 
     if (paidValue !== expectedValue) {
-      return res.status(400).send(`Valor divergente. Esperado ${expectedValue}, recebido ${paidValue}.`);
+      return res.status(400).send(
+        `Valor divergente. Esperado ${expectedValue}, recebido ${paidValue}.`
+      );
     }
 
     const localOrderId = `ATL-${Date.now()}`;
@@ -323,7 +333,7 @@ app.get("/paypal-return", async (req, res) => {
       captureResponse: data
     });
 
-    res.send(`
+    return res.send(`
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
@@ -348,12 +358,12 @@ app.get("/paypal-return", async (req, res) => {
     `);
   } catch (error) {
     console.error("Erro no retorno PayPal:", error);
-    res.status(500).send("Erro ao finalizar retorno do PayPal.");
+    return res.status(500).send("Erro ao finalizar retorno do PayPal.");
   }
 });
 
 app.get("/paypal-cancel", (req, res) => {
-  res.send(`
+  return res.send(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -364,17 +374,23 @@ app.get("/paypal-cancel", (req, res) => {
         body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #faf7f1; color: #3A1E0E; }
         .box { max-width: 520px; margin: 60px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
         a { display: inline-block; margin-top: 20px; text-decoration: none; background: #C9683A; color: white; padding: 12px 22px; border-radius: 999px; }
-        </style>
+      </style>
     </head>
-      <body>
-        <div class="box">
-          <h1>Pagamento cancelado</h1>
-          <p>Você cancelou o processo no PayPal.</p>
-          <a href="/">Voltar para a loja</a>
-        </div>
-      </body>
+    <body>
+      <div class="box">
+        <h1>Pagamento cancelado</h1>
+        <p>Você cancelou o processo no PayPal.</p>
+        <a href="/">Voltar para a loja</a>
+      </div>
+    </body>
     </html>
   `);
+});
+
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "atelie-priscila-lima-profissional.html"));
 });
 
 app.listen(PORT, () => {
