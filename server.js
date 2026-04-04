@@ -147,6 +147,8 @@ app.post("/api/paypal/create-order", async (req, res) => {
         brand_name: "Ateliê Priscila Lima",
         user_action: "PAY_NOW",
         shipping_preference: "NO_SHIPPING"
+        return_url: `${process.env.FRONTEND_URL}/paypal-return`,
+        cancel_url: `${process.env.FRONTEND_URL}/paypal-cancel`
       }
     };
 
@@ -164,6 +166,8 @@ app.post("/api/paypal/create-order", async (req, res) => {
     if (!response.ok) {
       console.error("Erro create-order PayPal:", data);
       return res.status(400).json({ error: "Falha ao criar pedido no PayPal.", details: data });
+
+      const approvalLink = data.links?.find(link => link.rel === "approve");
     }
 
     orders.set(data.id, {
@@ -176,7 +180,8 @@ app.post("/api/paypal/create-order", async (req, res) => {
     });
 
     res.json({
-      orderId: data.id
+      orderId: data.id,
+      approvalUrl: approvalLink?.href || null
     });
   } catch (error) {
     console.error("Erro create-order local:", error);
@@ -260,6 +265,114 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "atelie-priscila-lima-profissional.html"));
+});
+
+app.get("/paypal-return", async (req, res) => {
+  try {
+    const orderId = req.query.token;
+
+    if (!orderId) {
+      return res.status(400).send("Token do pedido não informado.");
+    }
+
+    const existingOrder = orders.get(orderId);
+    if (!existingOrder) {
+      return res.status(404).send("Pedido não encontrado no servidor.");
+    }
+
+    const accessToken = await getPayPalAccessToken();
+
+    const response = await fetch(`${getPayPalBaseUrl()}/v2/checkout/orders/${orderId}/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Erro ao capturar no retorno PayPal:", data);
+      return res.status(400).send("Falha ao capturar pagamento.");
+    }
+
+    const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
+    const paidValue = capture?.amount?.value;
+    const expectedValue = existingOrder.totals.subtotal;
+
+    if (!capture || capture.status !== "COMPLETED") {
+      return res.status(400).send("Pagamento não concluído.");
+    }
+
+    if (paidValue !== expectedValue) {
+      return res.status(400).send(`Valor divergente. Esperado ${expectedValue}, recebido ${paidValue}.`);
+    }
+
+    const localOrderId = `ATL-${Date.now()}`;
+
+    orders.set(orderId, {
+      ...existingOrder,
+      status: "PAID",
+      paidAt: new Date().toISOString(),
+      localOrderId,
+      paypalCaptureId: capture.id,
+      paypalStatus: capture.status,
+      captureResponse: data
+    });
+
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Pagamento aprovado</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #faf7f1; color: #3A1E0E; }
+          .box { max-width: 520px; margin: 60px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+          a { display: inline-block; margin-top: 20px; text-decoration: none; background: #C9683A; color: white; padding: 12px 22px; border-radius: 999px; }
+        </style>
+      </head>
+      <body>
+        <div class="box">
+          <h1>Pagamento aprovado</h1>
+          <p>Seu pedido foi confirmado com sucesso.</p>
+          <p><strong>Pedido:</strong> ${localOrderId}</p>
+          <a href="/">Voltar para a loja</a>
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error("Erro no retorno PayPal:", error);
+    res.status(500).send("Erro ao finalizar retorno do PayPal.");
+  }
+});
+
+app.get("/paypal-cancel", (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Pagamento cancelado</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 40px; text-align: center; background: #faf7f1; color: #3A1E0E; }
+        .box { max-width: 520px; margin: 60px auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,.08); }
+        a { display: inline-block; margin-top: 20px; text-decoration: none; background: #C9683A; color: white; padding: 12px 22px; border-radius: 999px; }
+        </style>
+    </head>
+      <body>
+        <div class="box">
+          <h1>Pagamento cancelado</h1>
+          <p>Você cancelou o processo no PayPal.</p>
+          <a href="/">Voltar para a loja</a>
+        </div>
+      </body>
+    </html>
+  `);
 });
 
 app.listen(PORT, () => {
