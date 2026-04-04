@@ -281,11 +281,13 @@ footer{background:var(--brown);color:var(--cream);padding:3.5rem 2rem;text-align
       </div>
     </form>
 
-    <div class="paypal-wrap">
-      <p class="paypal-note">🔒 Pagamento seguro via PayPal, com pedido criado no backend</p>
-      <p class="status-msg" id="payment-status"></p>
-      <div id="paypal-button-container"></div>
-    </div>
+  <div class="paypal-wrap">
+  <p class="paypal-note">🔒 Você será redirecionado para uma aba segura do PayPal</p>
+  <p class="status-msg" id="payment-status"></p>
+  <button class="btn-pri" id="paypal-redirect-btn" type="button">
+    Continuar no PayPal
+  </button>
+</div>
   </div>
 </div>
 
@@ -303,7 +305,6 @@ footer{background:var(--brown);color:var(--cream);padding:3.5rem 2rem;text-align
 
 <script>
 const API_BASE_URL = '';
-const PAYPAL_CLIENT_ID = 'AVNs6K08ZtykiyYW4Y9gBtHrSp9wXrDW5FQdkqXgiLK8LpVWqvDJ_V6P9pGch5NubCflYCvVPclcTh--';
 
 const PRODUCTS = [
   {
@@ -329,8 +330,6 @@ const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 let cart = [];
 let activeFilter = 'todos';
-let paypalScriptLoading = false;
-let paypalRendered = false;
 let toastTimer = null;
 let latestOrderPayload = null;
 
@@ -475,34 +474,12 @@ async function apiRequest(path, options = {}) {
   }
   return data;
 }
-async function loadPayPal() {
-  if (window.paypal) return;
-  if (paypalScriptLoading) return;
-
-  paypalScriptLoading = true;
-  const script = document.createElement('script');
-  script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(PAYPAL_CLIENT_ID)}&currency=BRL&locale=pt_BR&intent=capture`;
-  script.onload = () => {
-    paypalScriptLoading = false;
-    renderPayPalButtons();
-  };
   script.onerror = () => {
     paypalScriptLoading = false;
     setPaymentStatus('Erro ao carregar o PayPal.');
   };
   document.head.appendChild(script);
 }
-function renderPayPalButtons() {
-  if (paypalRendered || !window.paypal) return;
-  document.getElementById('paypal-button-container').innerHTML = '';
-
-  window.paypal.Buttons({
-    style: { layout:'vertical', color:'gold', shape:'pill', label:'paypal' },
-
-    createOrder: async () => {
-      if (!validateCheckout()) {
-        throw new Error('Dados incompletos.');
-      }
       setPaymentStatus('Criando pedido seguro...');
       const result = await apiRequest('/api/paypal/create-order', {
         method: 'POST',
@@ -547,6 +524,28 @@ function showSuccess(orderId) {
   refreshUI();
   renderCartBody();
 }
+  document.getElementById('paypal-redirect-btn').addEventListener('click', async () => {
+  try {
+    if (!validateCheckout()) return;
+
+    setPaymentStatus('Criando pedido e redirecionando para o PayPal...');
+
+    const result = await apiRequest('/api/paypal/create-order', {
+      method: 'POST',
+      body: JSON.stringify(latestOrderPayload)
+    });
+
+    if (!result.approvalUrl) {
+      throw new Error('O PayPal não retornou o link de aprovação.');
+    }
+
+    setPaymentStatus('Abrindo PayPal em nova aba...');
+
+    window.open(result.approvalUrl, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    console.error(error);
+    setPaymentStatus(error.message || 'Erro ao iniciar pagamento.');
+});
 
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
@@ -557,6 +556,8 @@ document.getElementById('filter-tabs').addEventListener('click', (e) => {
   renderProducts();
 });
 
+
+  
 document.getElementById('products-grid').addEventListener('click', (e) => {
   const btn = e.target.closest('.add-btn');
   if (!btn) return;
@@ -595,14 +596,13 @@ document.getElementById('cart-toggle-btn').addEventListener('click', openCart);
 document.getElementById('cart-close-btn').addEventListener('click', closeCart);
 document.getElementById('cart-overlay').addEventListener('click', closeCart);
 
-document.getElementById('checkout-btn').addEventListener('click', async () => {
+document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) return;
   closeCart();
   updateCheckoutSummary();
   setPaymentStatus('');
   document.getElementById('checkout-modal').classList.add('open');
-  await loadPayPal();
-  if (window.paypal && !paypalRendered) renderPayPalButtons();
+});
 });
 
 document.getElementById('checkout-close-btn').addEventListener('click', () => {
