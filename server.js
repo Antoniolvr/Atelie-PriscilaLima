@@ -146,7 +146,7 @@ app.post("/api/paypal/create-order", async (req, res) => {
       application_context: {
         brand_name: "Ateliê Priscila Lima",
         user_action: "PAY_NOW",
-        shipping_preference: "NO_SHIPPING"
+        shipping_preference: "NO_SHIPPING",
         return_url: `${process.env.FRONTEND_URL}/paypal-return`,
         cancel_url: `${process.env.FRONTEND_URL}/paypal-cancel`
       }
@@ -212,6 +212,8 @@ app.post("/api/paypal/capture-order", async (req, res) => {
     });
 
     const data = await response.json();
+
+  const approvalLink = data.links?.find(link => link.rel === "approve");
 
     if (!response.ok) {
       console.error("Erro capture-order PayPal:", data);
