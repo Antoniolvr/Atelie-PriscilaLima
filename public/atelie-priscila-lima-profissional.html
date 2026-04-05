@@ -140,8 +140,9 @@ nav{
 }
 
 .hero{
-  min-height:100vh;
+   min-height:100vh;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
   position:relative;
@@ -151,10 +152,24 @@ nav{
     radial-gradient(circle at 82% 25%, rgba(200,154,158,.16) 0%, transparent 36%),
     radial-gradient(circle at 50% 100%, rgba(239,215,217,.65) 0%, transparent 42%),
     linear-gradient(180deg,#FAF1F2 0%, #F7EBEC 100%);
-  padding:6rem 2rem 5rem;
+  padding:4rem 2rem 5rem;
   text-align:center;
 }
 
+.hero-banner{
+  width:100%;
+  max-width:1400px;
+  margin:0 auto 2rem;
+}
+
+.hero-logo-banner{
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:contain;
+  filter:drop-shadow(0 12px 28px rgba(77,53,55,.12));
+}
+  
 .hero-overlay{
   position:absolute;
   inset:0;
@@ -186,13 +201,6 @@ nav{
   position:relative;
   z-index:2;
   max-width:920px;
-}
-
-.hero-logo{
-  width:min(340px,75vw);
-  display:block;
-  margin:0 auto 2rem;
-  filter:drop-shadow(0 12px 28px rgba(77,53,55,.12));
 }
 
 .hero-tag{
@@ -1091,8 +1099,11 @@ footer{
   <span class="hero-deco">✿</span>
   <span class="hero-deco2">❀</span>
 
-  <div class="hero-content">
-    <img src="/logo.jpg" alt="Logo Ateliê Priscila Lima" class="hero-logo">
+    <div class="hero-banner">
+  <img src="/logo-banner.png" alt="Logo Ateliê Priscila Lima" class="hero-logo-banner">
+</div>
+
+<div class="hero-content">
 
     <span class="hero-tag">✦ CROCHÊ ARTESANAL COM DELICADEZA E ELEGÂNCIA ✦</span>
 
