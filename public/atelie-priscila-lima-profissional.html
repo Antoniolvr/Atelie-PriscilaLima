@@ -965,12 +965,12 @@ footer{
   resize:vertical;
 }
 
-.paypal-wrap{
+.checkout-wrap{
   margin-top:1.5rem;
   text-align:center;
 }
 
-.paypal-note{
+.checkout-note{
   text-align:center;
   font-size:.8rem;
   color:var(--brown-mid);
@@ -1006,52 +1006,6 @@ footer{
   transform:translateY(-1px);
 }
 
-.success-box{
-  background:var(--white);
-  border-radius:24px;
-  padding:3rem 2.4rem;
-  width:100%;
-  max-width:390px;
-  text-align:center;
-  transform:scale(.92);
-  transition:transform .28s;
-  box-shadow:0 16px 44px rgba(58,30,14,.18);
-}
-
-.modal-bg.open .success-box{
-  transform:scale(1);
-}
-
-.suc-icon{
-  font-size:4rem;
-  display:block;
-  margin-bottom:1.4rem;
-}
-
-.success-box h3{
-  font-family:'Playfair Display',serif;
-  font-size:1.75rem;
-  color:var(--brown);
-  margin-bottom:1rem;
-}
-
-.success-box p{
-  color:var(--brown-mid);
-  line-height:1.75;
-  margin-bottom:1.6rem;
-}
-
-.suc-order{
-  background:var(--bg-2);
-  padding:.7rem 1rem;
-  border-radius:10px;
-  font-size:.82rem;
-  color:var(--brown-mid);
-  font-family:monospace;
-  margin-bottom:1.8rem;
-  letter-spacing:.04em;
-}
-
 .toast{
   position:fixed;
   bottom:2rem;
@@ -1081,7 +1035,7 @@ footer{
 @media(max-width:720px){
   .nav-links{display:none}
   .cart-sidebar{width:100%}
-  .modal-box,.success-box{padding:1.8rem 1.4rem}
+  .modal-box{padding:1.8rem 1.4rem}
   .products-grid{grid-template-columns:1fr}
   .form-grid{grid-template-columns:1fr}
   .hero-actions{flex-direction:column;align-items:center}
@@ -1203,7 +1157,7 @@ footer{
       <span class="cart-grand-label">Total</span>
       <span class="cart-grand-value" id="cart-total">R$ 0,00</span>
     </div>
-    <button id="checkout-btn" disabled>Finalizar com PayPal →</button>
+    <button id="checkout-btn" disabled>Finalizar Pedido no WhatsApp →</button>
   </div>
 </aside>
 
@@ -1241,28 +1195,18 @@ footer{
       </div>
     </form>
 
-    <div class="paypal-wrap">
-      <p class="paypal-note">🔒 Você será redirecionado para uma aba segura do PayPal</p>
+    <div class="checkout-wrap">
+      <p class="checkout-note">📲 Ao clicar abaixo, o pedido será enviado direto para o WhatsApp da loja</p>
       <p class="status-msg" id="payment-status"></p>
-      <button class="btn-pri" id="paypal-redirect-btn" type="button">Continuar no PayPal</button>
+      <button class="btn-pri" id="whatsapp-checkout-btn" type="button">Enviar pedido no WhatsApp</button>
     </div>
-  </div>
-</div>
-
-<div class="modal-bg" id="success-modal">
-  <div class="success-box">
-    <span class="suc-icon">🎉</span>
-    <h3>Pedido Confirmado!</h3>
-    <p>Pagamento aprovado e pedido registrado com sucesso. Você receberá os próximos detalhes por e-mail ou WhatsApp.</p>
-    <div class="suc-order" id="suc-order-id">Pedido #---</div>
-    <button class="btn-pri" id="success-close-btn">Continuar Comprando ✦</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const API_BASE_URL = '';
+const WHATSAPP_NUMBER = '81996809206';
 
 const PRODUCTS = [
   {
@@ -1339,7 +1283,6 @@ const fmt = n => Number(n).toFixed(2).replace('.', ',');
 let cart = [];
 let activeFilter = 'todos';
 let toastTimer = null;
-let latestOrderPayload = null;
 
 try {
   cart = JSON.parse(localStorage.getItem('atelie_cart') || '[]');
@@ -1355,16 +1298,6 @@ function saveCart() {
 
 function getTotal() {
   return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-}
-
-function getNormalizedCart() {
-  return cart.map(item => ({
-    productId: item.id,
-    sku: CATALOG[item.id]?.sku,
-    name: item.name,
-    quantity: item.qty,
-    unitPrice: Number(item.price)
-  }));
 }
 
 function showToast(msg) {
@@ -1497,64 +1430,49 @@ function validateCheckout() {
     return false;
   }
 
-  latestOrderPayload = {
-    cart: getNormalizedCart(),
-    customer
-  };
-
   return true;
 }
 
-async function apiRequest(path, options = {}) {
-  const response = await fetch(API_BASE_URL + path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    }
-  });
+function buildWhatsAppMessage() {
+  const customer = getCustomerData();
+  const itemsText = cart.map((item, index) => {
+    const subtotal = item.price * item.qty;
+    const sku = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
+    return `${index + 1}. ${item.name}${sku}
+Qtd: ${item.qty}
+Valor unitário: R$ ${fmt(item.price)}
+Subtotal: R$ ${fmt(subtotal)}`;
+  }).join('\n\n');
 
-  const data = await response.json().catch(() => ({}));
+  return `Olá! Gostaria de finalizar este pedido:
 
-  if (!response.ok) {
-    throw new Error(data.error || data.message || 'Erro na requisição.');
-  }
+🛍️ *PEDIDO*
+${itemsText}
 
-  return data;
+💰 *TOTAL*: R$ ${fmt(getTotal())}
+
+👤 *DADOS DO CLIENTE*
+Nome: ${customer.name}
+Telefone: ${customer.phone}
+E-mail: ${customer.email}
+Endereço: ${customer.address}
+Observações: ${customer.note || 'Nenhuma'}`;
 }
 
-function showSuccess(orderId) {
-  document.getElementById('suc-order-id').textContent = 'Pedido ' + orderId;
-  document.getElementById('success-modal').classList.add('open');
-  cart = [];
-  saveCart();
-  refreshUI();
-  renderCartBody();
-}
+function sendOrderToWhatsApp() {
+  if (!validateCheckout()) return;
 
-document.getElementById('paypal-redirect-btn').addEventListener('click', async () => {
-  try {
-    if (!validateCheckout()) return;
-
-    setPaymentStatus('Criando pedido e redirecionando para o PayPal...');
-
-    const result = await apiRequest('/api/paypal/create-order', {
-      method: 'POST',
-      body: JSON.stringify(latestOrderPayload)
-    });
-
-    if (!result.approvalUrl) {
-      throw new Error('O PayPal não retornou o link de aprovação.');
-    }
-
-    setPaymentStatus('Abrindo PayPal em nova aba...');
-
-    window.open(result.approvalUrl, '_blank', 'noopener,noreferrer');
-  } catch (error) {
-    console.error(error);
-    setPaymentStatus(error.message || 'Erro ao iniciar pagamento.');
+  if (!WHATSAPP_NUMBER || WHATSAPP_NUMBER === '81996809206') {
+    setPaymentStatus('Configure o número do WhatsApp da loja no código.');
+    return;
   }
-});
+
+  const message = buildWhatsAppMessage();
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+  setPaymentStatus('Abrindo WhatsApp...');
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
 
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
@@ -1641,15 +1559,7 @@ document.getElementById('checkout-modal').addEventListener('click', function (e)
   }
 });
 
-document.getElementById('success-close-btn').addEventListener('click', () => {
-  document.getElementById('success-modal').classList.remove('open');
-});
-
-document.getElementById('success-modal').addEventListener('click', function (e) {
-  if (e.target === this) {
-    this.classList.remove('open');
-  }
-});
+document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
 renderProducts();
 refreshUI();
