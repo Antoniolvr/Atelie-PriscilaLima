@@ -405,6 +405,38 @@ nav{
   transform:scale(1.05);
 }
 
+.custom-visual{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+  text-align:center;
+}
+
+.custom-visual-ico{
+  font-size:3.2rem;
+  line-height:1;
+  margin-bottom:.9rem;
+  filter:drop-shadow(0 8px 18px rgba(169,120,125,.20));
+}
+
+.custom-visual-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.1rem;
+  color:var(--brown);
+  margin-bottom:.45rem;
+}
+
+.custom-visual-sub{
+  font-size:.84rem;
+  color:var(--brown-mid);
+  line-height:1.6;
+  max-width:220px;
+}
+
 .product-badge{
   position:absolute;
   top:.85rem;
@@ -439,7 +471,8 @@ nav{
   margin-bottom:.45rem;
   line-height:1.3;
 }
-  .product-measure{
+
+.product-measure{
   font-size:.82rem;
   color:var(--rose-dark);
   font-weight:600;
@@ -457,6 +490,7 @@ nav{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  gap:1rem;
 }
 
 .product-price{
@@ -474,24 +508,39 @@ nav{
   font-weight:400;
 }
 
-.add-btn{
+.add-btn,
+.custom-btn{
   background:linear-gradient(135deg,var(--rose),var(--rose-dark));
   color:#fff;
   border:none;
-  width:42px;
-  height:42px;
-  border-radius:50%;
   cursor:pointer;
-  font-size:1.3rem;
-  display:flex;
-  align-items:center;
-  justify-content:center;
   transition:all .2s;
   box-shadow:0 8px 18px rgba(169,120,125,.25);
 }
 
-.add-btn:hover{
-  transform:scale(1.1);
+.add-btn{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  font-size:1.3rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.custom-btn{
+  min-width:130px;
+  height:42px;
+  border-radius:999px;
+  padding:0 1rem;
+  font-family:'Lora',serif;
+  font-size:.82rem;
+  white-space:nowrap;
+}
+
+.add-btn:hover,
+.custom-btn:hover{
+  transform:scale(1.05);
 }
 
 .about-section{
@@ -1046,6 +1095,7 @@ footer{
   .form-grid{grid-template-columns:1fr}
   .hero-actions{flex-direction:column;align-items:center}
   .hero-cta{width:min(100%,300px)}
+  .custom-btn{min-width:118px;padding:0 .8rem;font-size:.78rem}
 }
 </style>
 </head>
@@ -1274,7 +1324,20 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#FFF8F1,#F8EEDC)',
     measure: '100cm~120cm x 20cm',
     desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho interno de corações. Uma peça romântica e sofisticada, criada para destacar a beleza da mesa com suavidade, elegância e um toque afetivo que valoriza qualquer ambiente.'
-    
+  },
+  {
+    id: 6,
+    sku: 'PERSONALIZADO-006',
+    name: 'Mande sua Inspiração',
+    cat: 'decoracao',
+    price: null,
+    image: '',
+    badge: 'Exclusivo',
+    color: 'linear-gradient(135deg,#F8E8EC,#EFD7D9)',
+    measure: 'Sob encomenda',
+    desc: 'Gostou de um estilo, viu uma referência ou quer uma peça única? Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
+    custom: true,
+    buttonText: 'Solicitar'
   }
 ];
 
@@ -1351,7 +1414,17 @@ function renderProducts() {
   grid.innerHTML = list.map((p, i) => `
     <div class="product-card" style="animation-delay:${i * 0.08}s">
       <div class="product-img" style="background:${p.color}">
-        <img src="${p.image}" class="product-image" alt="${p.name}">
+        ${
+          p.custom
+            ? `
+              <div class="custom-visual">
+                <div class="custom-visual-ico">✨</div>
+                <div class="custom-visual-title">Peça sob medida</div>
+                <div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div>
+              </div>
+            `
+            : `<img src="${p.image}" class="product-image" alt="${p.name}">`
+        }
         ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
       </div>
       <div class="product-info">
@@ -1360,8 +1433,22 @@ function renderProducts() {
         ${p.measure ? `<p class="product-measure">Medida: ${p.measure}</p>` : ''}
         <p class="product-desc">${p.desc}</p>
         <div class="product-footer">
-          <div class="product-price">R$ ${fmt(p.price)}<small>ou R$27,00 no cartão</small></div>
-          <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
+          ${
+            p.custom
+              ? `
+                <div class="product-price">
+                  Sob encomenda
+                  <small>Consulte valor e prazo</small>
+                </div>
+                <button class="custom-btn" data-custom-id="${p.id}" title="Solicitar peça personalizada">
+                  ${p.buttonText || 'Solicitar'}
+                </button>
+              `
+              : `
+                <div class="product-price">R$ ${fmt(p.price)}<small>ou R$27,00 no cartão</small></div>
+                <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
+              `
+          }
         </div>
       </div>
     </div>
@@ -1472,6 +1559,16 @@ Endereço: ${customer.address}
 Observações: ${customer.note || 'Nenhuma'}`;
 }
 
+function buildCustomOrderMessage(product) {
+  return `Olá! Tenho interesse em uma peça personalizada.
+
+✨ *PEDIDO PERSONALIZADO*
+Referência: ${product.name}
+SKU: ${product.sku}
+
+Quero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
+}
+
 function sendOrderToWhatsApp() {
   if (!validateCheckout()) return;
 
@@ -1487,6 +1584,21 @@ function sendOrderToWhatsApp() {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
+function sendCustomOrderToWhatsApp(productId) {
+  if (!WHATSAPP_NUMBER || WHATSAPP_NUMBER === 'SEUNUMEROAQUI') {
+    showToast('Configure o número do WhatsApp da loja no código.');
+    return;
+  }
+
+  const product = PRODUCTS.find(x => x.id === productId && x.custom);
+  if (!product) return;
+
+  const message = buildCustomOrderMessage(product);
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
@@ -1498,12 +1610,19 @@ document.getElementById('filter-tabs').addEventListener('click', (e) => {
 });
 
 document.getElementById('products-grid').addEventListener('click', (e) => {
+  const customBtn = e.target.closest('.custom-btn');
+  if (customBtn) {
+    const customId = parseInt(customBtn.dataset.customId, 10);
+    sendCustomOrderToWhatsApp(customId);
+    return;
+  }
+
   const btn = e.target.closest('.add-btn');
   if (!btn) return;
 
   const id = parseInt(btn.dataset.productId, 10);
   const p = PRODUCTS.find(x => x.id === id);
-  if (!p) return;
+  if (!p || p.custom) return;
 
   const existing = cart.find(x => x.id === id);
   if (existing) {
