@@ -1428,20 +1428,22 @@ function renderCartBody() {
   }
 
   body.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <div class="ci-icon">${item.emoji}</div>
-      <div class="ci-info">
-        <p class="ci-name">${item.name}</p>
-        <p class="ci-price">R$ ${fmt(item.price)}</p>
-        <div class="ci-controls">
-          <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
-          <span class="qty-n">${item.qty}</span>
-          <button class="qty-btn" data-action="plus" data-id="${item.id}">+</button>
-        </div>
-      </div>
-      <button class="ci-del" data-action="del" data-id="${item.id}">🗑️</button>
+  <div class="cart-item">
+    <div class="ci-icon">
+      <img src="${item.image}" alt="${item.name}" class="ci-thumb">
     </div>
-  `).join('');
+    <div class="ci-info">
+      <p class="ci-name">${item.name}</p>
+      <p class="ci-price">R$ ${fmt(item.price)}</p>
+      <div class="ci-controls">
+        <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
+        <span class="qty-n">${item.qty}</span>
+        <button class="qty-btn" data-action="plus" data-id="${item.id}">+</button>
+      </div>
+    </div>
+    <button class="ci-del" data-action="del" data-id="${item.id}">🗑️</button>
+  </div>
+`).join('');
 }
 
 function openCart() {
@@ -1578,9 +1580,16 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
       qty: 1,
       name: p.name,
       price: p.price,
-      emoji: p.emoji
+      emoji: p.image
     });
   }
+
+  .ci-thumb{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:10px;
+}
 
   saveCart();
   refreshUI();
