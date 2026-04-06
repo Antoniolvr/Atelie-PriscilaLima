@@ -1451,8 +1451,7 @@ function buildWhatsAppMessage() {
   const itemsText = cart.map((item, index) => {
     const subtotal = item.price * item.qty;
     const sku = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
-    const measure = CATALOG[item.id]?.measure ? `\nMedida: ${CATALOG[item.id].measure}` : '';
-    return `${index + 1}. ${item.name}${sku}{measure}
+    return `${index + 1}. ${item.name}${sku}
 Qtd: ${item.qty}
 Valor unitário: R$ ${fmt(item.price)}
 Subtotal: R$ ${fmt(subtotal)}`;
