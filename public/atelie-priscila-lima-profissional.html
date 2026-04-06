@@ -439,6 +439,12 @@ nav{
   margin-bottom:.45rem;
   line-height:1.3;
 }
+  .product-measure{
+  font-size:.82rem;
+  color:var(--rose-dark);
+  font-weight:600;
+  margin-bottom:.55rem;
+}
 
 .product-desc{
   font-size:.82rem;
@@ -1351,6 +1357,7 @@ function renderProducts() {
       <div class="product-info">
         <p class="product-cat">${CAT_LABELS[p.cat] || p.cat}</p>
         <h3 class="product-name">${p.name}</h3>
+        ${p.measure ? `<p class="product-measure">Medida: ${p.measure}</p>` : ''}
         <p class="product-desc">${p.desc}</p>
         <div class="product-footer">
           <div class="product-price">R$ ${fmt(p.price)}<small>ou R$27,00 no cartão</small></div>
@@ -1444,7 +1451,8 @@ function buildWhatsAppMessage() {
   const itemsText = cart.map((item, index) => {
     const subtotal = item.price * item.qty;
     const sku = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
-    return `${index + 1}. ${item.name}${sku}
+    const measure = CATALOG[item.id]?.measure ? `\nMedida: ${CATALOG[item.id].measure}` : '';
+    return `${index + 1}. ${item.name}${sku}{measure}
 Qtd: ${item.qty}
 Valor unitário: R$ ${fmt(item.price)}
 Subtotal: R$ ${fmt(subtotal)}`;
