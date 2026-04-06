@@ -1462,7 +1462,7 @@ Observações: ${customer.note || 'Nenhuma'}`;
 function sendOrderToWhatsApp() {
   if (!validateCheckout()) return;
 
-  if (!WHATSAPP_NUMBER || WHATSAPP_NUMBER === '81996809206') {
+  if (!WHATSAPP_NUMBER || WHATSAPP_NUMBER === 'SEUNUMEROAQUI') {
     setPaymentStatus('Configure o número do WhatsApp da loja no código.');
     return;
   }
