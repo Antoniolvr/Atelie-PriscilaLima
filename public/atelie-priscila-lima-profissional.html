@@ -140,7 +140,7 @@ nav{
 }
 
 .hero{
-   min-height:100vh;
+  min-height:100vh;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -162,14 +162,14 @@ nav{
 }
 
 .hero-logo-banner{
-     width:100%;
-  max-height:600px; /* AJUSTE AQUI */
+  width:100%;
+  max-height:600px;
   height:auto;
   display:block;
   object-fit:contain;
   filter:drop-shadow(0 12px 28px rgba(77,53,55,.12));
 }
-  
+
 .hero-overlay{
   position:absolute;
   inset:0;
@@ -391,23 +391,16 @@ nav{
   overflow:hidden;
 }
 
-  .product-image{
+.product-image{
   width:100%;
   height:100%;
   object-fit:contain;
   padding:12px;
   transition:transform .3s ease;
-  mix-blend-mode: multiply;
 }
 
 .product-card:hover .product-image{
   transform:scale(1.05);
-}
-
-.product-emoji{
-  font-size:5rem;
-  filter:drop-shadow(0 8px 14px rgba(0,0,0,.16));
-  transition:transform .3s;
 }
 
 .product-badge{
@@ -722,6 +715,14 @@ footer{
   justify-content:center;
   font-size:1.7rem;
   flex-shrink:0;
+  overflow:hidden;
+}
+
+.ci-thumb{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  border-radius:10px;
 }
 
 .ci-info{
@@ -1108,12 +1109,11 @@ footer{
   <span class="hero-deco">✿</span>
   <span class="hero-deco2">❀</span>
 
-    <div class="hero-banner">
-  <img src="/logo4.png" alt="Logo Ateliê Priscila Lima" class="hero-logo-banner">
-</div>
+  <div class="hero-banner">
+    <img src="/logo4.png" alt="Logo Ateliê Priscila Lima" class="hero-logo-banner">
+  </div>
 
-<div class="hero-content">
-
+  <div class="hero-content">
     <span class="hero-tag">✦ CROCHÊ ARTESANAL COM DELICADEZA E ELEGÂNCIA ✦</span>
 
     <h1>Peças feitas à mão para tornar cada detalhe <em>mais especial</em></h1>
@@ -1268,18 +1268,18 @@ const PRODUCTS = [
     name: 'Sousplat de Crochê',
     cat: 'decoracao',
     price: 25.00,
-    image: 'produto1.png',
+    image: '/produto1.png',
     badge: 'Novidade',
     color: 'linear-gradient(135deg,#F2E2E4,#E8CDD0)',
     desc: 'Sousplat artesanal em crochê com acabamento delicado para valorizar sua mesa com charme e elegância.'
   },
-   {
+  {
     id: 2,
     sku: 'TAPETE-OVAL-002',
     name: 'Tapete Oval Verde e Off White',
     cat: 'decoracao',
     price: 25.00,
-    image: 'produto2.png',
+    image: '/produto2.png',
     badge: 'Novo',
     color: 'linear-gradient(135deg,#E8F1EC,#D9E9E0)',
     desc: 'Peça artesanal em formato oval com composição elegante em verde e off white. O desenho central marcante e o acabamento rendado nas bordas trazem sofisticação, delicadeza e um toque acolhedor para a decoração da sua casa. Ideal para mesa, aparador, cômoda ou cantinhos especiais.'
@@ -1290,7 +1290,7 @@ const PRODUCTS = [
     name: 'Centro de Mesa Redondo Verde com Dourado',
     cat: 'decoracao',
     price: 25.00,
-    image: 'produto3.png',
+    image: '/produto3.png',
     badge: 'Destaque',
     color: 'linear-gradient(135deg,#E7EFE5,#DCE9D7)',
     desc: 'Centro de mesa em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado que valoriza ainda mais a peça. Seu desenho vazado evidencia o trabalho manual e cria uma composição charmosa, perfeita para transformar a decoração com elegância e personalidade.'
@@ -1301,7 +1301,7 @@ const PRODUCTS = [
     name: 'Sousplat Redondo Candy Colors',
     cat: 'decoracao',
     price: 25.00,
-    image: 'produto4.png',
+    image: '/produto4.png',
     badge: 'Encantador',
     color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
     desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara. Uma peça alegre, romântica e cheia de charme, ideal para compor mesas postas criativas, leves e acolhedoras. O acabamento em camadas destaca o capricho de cada detalhe.'
@@ -1312,7 +1312,7 @@ const PRODUCTS = [
     name: 'Caminho de Mesa Corações Off White com Dourado',
     cat: 'decoracao',
     price: 25.00,
-    image: 'produto5.png',
+    image: '/produto5.png',
     badge: 'Especial',
     color: 'linear-gradient(135deg,#FFF8F1,#F8EEDC)',
     desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho interno de corações. Uma peça romântica e sofisticada, criada para destacar a beleza da mesa com suavidade, elegância e um toque afetivo que valoriza qualquer ambiente.'
@@ -1428,22 +1428,22 @@ function renderCartBody() {
   }
 
   body.innerHTML = cart.map(item => `
-  <div class="cart-item">
-    <div class="ci-icon">
-      <img src="${item.image}" alt="${item.name}" class="ci-thumb">
-    </div>
-    <div class="ci-info">
-      <p class="ci-name">${item.name}</p>
-      <p class="ci-price">R$ ${fmt(item.price)}</p>
-      <div class="ci-controls">
-        <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
-        <span class="qty-n">${item.qty}</span>
-        <button class="qty-btn" data-action="plus" data-id="${item.id}">+</button>
+    <div class="cart-item">
+      <div class="ci-icon">
+        <img src="${item.image}" alt="${item.name}" class="ci-thumb">
       </div>
+      <div class="ci-info">
+        <p class="ci-name">${item.name}</p>
+        <p class="ci-price">R$ ${fmt(item.price)}</p>
+        <div class="ci-controls">
+          <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
+          <span class="qty-n">${item.qty}</span>
+          <button class="qty-btn" data-action="plus" data-id="${item.id}">+</button>
+        </div>
+      </div>
+      <button class="ci-del" data-action="del" data-id="${item.id}">🗑️</button>
     </div>
-    <button class="ci-del" data-action="del" data-id="${item.id}">🗑️</button>
-  </div>
-`).join('');
+  `).join('');
 }
 
 function openCart() {
@@ -1460,7 +1460,7 @@ function closeCart() {
 function updateCheckoutSummary() {
   document.getElementById('sum-items').innerHTML = cart.map(x => `
     <div class="sum-row">
-      <span>${x.emoji} ${x.name} × ${x.qty}</span>
+      <span>${x.name} × ${x.qty}</span>
       <span>R$ ${fmt(x.price * x.qty)}</span>
     </div>
   `).join('');
@@ -1580,20 +1580,14 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
       qty: 1,
       name: p.name,
       price: p.price,
-      emoji: p.image
+      image: p.image
     });
   }
 
-  .ci-thumb{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  border-radius:10px;
-}
-
   saveCart();
   refreshUI();
-  showToast(`${p.emoji} ${p.name} adicionado!`);
+  renderCartBody();
+  showToast(`${p.name} adicionado!`);
   bumpBadge();
 });
 
