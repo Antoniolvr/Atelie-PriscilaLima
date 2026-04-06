@@ -18,7 +18,11 @@ app.use(cors({
 app.use(express.json());
 
 const CATALOG = {
-  1: { id: 1, sku: "SOUSPLAT-001", name: "Sousplat de Crochê", unitPrice: 25.00 }
+  1: { id: 1, sku: "SOUSPLAT-001", name: "Sousplat de Crochê", unitPrice: 25.00 },
+  2: { id: 2, sku: "TAPETE-OVAL-002", name: "Tapete Oval Verde e Off White", unitPrice: 25.00 },
+  3: { id: 3, sku: "CENTRO-MESA-003", name: "Centro de Mesa Redondo Verde com Dourado", unitPrice: 25.00 },
+  4: { id: 4, sku: "SOUSPLAT-COLOR-004", name: "Sousplat Redondo Candy Colors", unitPrice: 25.00 },
+  5: { id: 5, sku: "CAMINHO-MESA-005", name: "Caminho de Mesa Corações Off White com Dourado", unitPrice: 25.00 }
 };
 
 // Em produção, troque isso por banco de dados.
