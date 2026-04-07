@@ -62,7 +62,7 @@ nav{
 .main-logo{
   height:120px;
   width:auto;
-  max-width: 300px;
+  max-width:300px;
   object-fit:contain;
   display:block;
 }
@@ -1008,7 +1008,8 @@ footer{
 }
 
 .field input,
-.field textarea{
+.field textarea,
+.field select{
   border:1px solid rgba(169,120,125,.25);
   border-radius:14px;
   padding:.85rem .95rem;
@@ -1227,9 +1228,16 @@ footer{
 
     <p class="sum-title">📋 Resumo do Pedido</p>
     <div id="sum-items"></div>
-    <div class="sum-total"><span>Total</span><span id="sum-total-val">R$ 0,00</span></div>
 
     <form id="checkout-form" class="form-grid">
+      <div class="field full">
+        <label for="payment-method">Forma de pagamento</label>
+        <select id="payment-method" name="paymentMethod" required>
+          <option value="avista">À vista</option>
+          <option value="cartao">Cartão (+3,8%)</option>
+        </select>
+      </div>
+
       <div class="field">
         <label for="customer-name">Nome completo</label>
         <input id="customer-name" name="name" required>
@@ -1252,6 +1260,8 @@ footer{
       </div>
     </form>
 
+    <div class="sum-total"><span>Total</span><span id="sum-total-val">R$ 0,00</span></div>
+
     <div class="checkout-wrap">
       <p class="checkout-note">📲 Ao clicar abaixo, o pedido será enviado direto para o WhatsApp da loja</p>
       <p class="status-msg" id="payment-status"></p>
@@ -1264,6 +1274,7 @@ footer{
 
 <script>
 const WHATSAPP_NUMBER = '5581996809206';
+const CARD_FEE_PERCENT = 3.8;
 
 const PRODUCTS = [
   {
@@ -1356,6 +1367,26 @@ const CAT_LABELS = {
 
 const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
+function getCardPrice(price) {
+  return Number(price) * (1 + CARD_FEE_PERCENT / 100);
+}
+
+function getPaymentMethod() {
+  const select = document.getElementById('payment-method');
+  return select ? select.value : 'avista';
+}
+
+function getUnitPriceByMethod(price, paymentMethod) {
+  return paymentMethod === 'cartao' ? getCardPrice(price) : Number(price);
+}
+
+function getTotal(paymentMethod = 'avista') {
+  return cart.reduce((sum, item) => {
+    const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
+    return sum + unitPrice * item.qty;
+  }, 0);
+}
+
 let cart = [];
 let activeFilter = 'todos';
 let toastTimer = null;
@@ -1370,10 +1401,6 @@ function saveCart() {
   try {
     localStorage.setItem('atelie_cart', JSON.stringify(cart));
   } catch (e) {}
-}
-
-function getTotal() {
-  return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 }
 
 function showToast(msg) {
@@ -1397,7 +1424,7 @@ function setPaymentStatus(msg) {
 function refreshUI() {
   const count = cart.reduce((s, x) => s + x.qty, 0);
   document.getElementById('cart-count').textContent = count;
-  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotal());
+  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotal('avista'));
   document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
 
@@ -1446,7 +1473,10 @@ function renderProducts() {
                 </button>
               `
               : `
-                <div class="product-price">R$ ${fmt(p.price)}<small>ou R$27,00 no cartão</small></div>
+                <div class="product-price">
+                  R$ ${fmt(p.price)}
+                  <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão</small>
+                </div>
                 <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
               `
           }
@@ -1471,7 +1501,7 @@ function renderCartBody() {
       </div>
       <div class="ci-info">
         <p class="ci-name">${item.name}</p>
-        <p class="ci-price">R$ ${fmt(item.price)}</p>
+        <p class="ci-price">R$ ${fmt(item.price)} <span style="opacity:.7">(à vista)</span></p>
         <div class="ci-controls">
           <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
           <span class="qty-n">${item.qty}</span>
@@ -1495,14 +1525,20 @@ function closeCart() {
 }
 
 function updateCheckoutSummary() {
-  document.getElementById('sum-items').innerHTML = cart.map(x => `
-    <div class="sum-row">
-      <span>${x.name} × ${x.qty}</span>
-      <span>R$ ${fmt(x.price * x.qty)}</span>
-    </div>
-  `).join('');
+  const paymentMethod = getPaymentMethod();
 
-  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotal());
+  document.getElementById('sum-items').innerHTML = cart.map(x => {
+    const unitPrice = getUnitPriceByMethod(x.price, paymentMethod);
+    const subtotal = unitPrice * x.qty;
+    return `
+      <div class="sum-row">
+        <span>${x.name} × ${x.qty}</span>
+        <span>R$ ${fmt(subtotal)}</span>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotal(paymentMethod));
 }
 
 function getCustomerData() {
@@ -1510,6 +1546,7 @@ function getCustomerData() {
   const data = new FormData(form);
 
   return {
+    paymentMethod: String(data.get('paymentMethod') || 'avista').trim(),
     name: String(data.get('name') || '').trim(),
     phone: String(data.get('phone') || '').trim(),
     email: String(data.get('email') || '').trim(),
@@ -1534,14 +1571,21 @@ function validateCheckout() {
   return true;
 }
 
+function getPaymentMethodLabel(paymentMethod) {
+  return paymentMethod === 'cartao' ? 'Cartão (+3,8%)' : 'À vista';
+}
+
 function buildWhatsAppMessage() {
   const customer = getCustomerData();
+  const paymentMethod = customer.paymentMethod;
+
   const itemsText = cart.map((item, index) => {
-    const subtotal = item.price * item.qty;
+    const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
+    const subtotal = unitPrice * item.qty;
     const sku = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
     return `${index + 1}. ${item.name}${sku}
 Qtd: ${item.qty}
-Valor unitário: R$ ${fmt(item.price)}
+Valor unitário: R$ ${fmt(unitPrice)}
 Subtotal: R$ ${fmt(subtotal)}`;
   }).join('\n\n');
 
@@ -1550,7 +1594,8 @@ Subtotal: R$ ${fmt(subtotal)}`;
 🛍️ *PEDIDO*
 ${itemsText}
 
-💰 *TOTAL*: R$ ${fmt(getTotal())}
+💳 *FORMA DE PAGAMENTO*: ${getPaymentMethodLabel(paymentMethod)}
+💰 *TOTAL*: R$ ${fmt(getTotal(paymentMethod))}
 
 👤 *DADOS DO CLIENTE*
 Nome: ${customer.name}
@@ -1667,6 +1712,7 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   saveCart();
   refreshUI();
   renderCartBody();
+  updateCheckoutSummary();
 });
 
 document.getElementById('cart-toggle-btn').addEventListener('click', openCart);
@@ -1677,9 +1723,9 @@ document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) return;
 
   closeCart();
-  updateCheckoutSummary();
   setPaymentStatus('');
   document.getElementById('checkout-modal').classList.add('open');
+  updateCheckoutSummary();
 });
 
 document.getElementById('checkout-close-btn').addEventListener('click', () => {
@@ -1692,6 +1738,7 @@ document.getElementById('checkout-modal').addEventListener('click', function (e)
   }
 });
 
+document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
 renderProducts();
