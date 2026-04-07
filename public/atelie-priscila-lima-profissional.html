@@ -1234,7 +1234,7 @@ footer{
         <label for="payment-method">Forma de pagamento</label>
         <select id="payment-method" name="paymentMethod" required>
           <option value="avista">À vista</option>
-          <option value="cartao">Cartão (+3,8%)</option>
+          <option value="cartao">Cartão</option>
         </select>
       </div>
 
@@ -1368,7 +1368,7 @@ const CAT_LABELS = {
 const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 function getCardPrice(price) {
-  return Number(price) * (1 + CARD_FEE_PERCENT / 100);
+  return Math.ceil(Number(price) * (1 + CARD_FEE_PERCENT / 100));
 }
 
 function getPaymentMethod() {
@@ -1572,7 +1572,7 @@ function validateCheckout() {
 }
 
 function getPaymentMethodLabel(paymentMethod) {
-  return paymentMethod === 'cartao' ? 'Cartão (+3,8%)' : 'À vista';
+  return paymentMethod === 'cartao' ? 'Cartão' : 'À vista';
 }
 
 function buildWhatsAppMessage() {
