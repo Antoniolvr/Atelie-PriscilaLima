@@ -631,7 +631,7 @@ app.get("/paypal-cancel", rateLimit(20), (_req, res) => {
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "public", "atelie-priscila-lima-profissional.html"));
 });
 
 app.listen(PORT, () => {
