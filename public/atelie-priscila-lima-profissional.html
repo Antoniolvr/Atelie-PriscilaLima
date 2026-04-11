@@ -537,6 +537,81 @@ nav{
 
 .add-btn:hover,.custom-btn:hover{ transform:scale(1.05); }
 
+.video-btn{
+  min-width:110px;
+  height:42px;
+  border-radius:999px;
+  padding:0 1rem;
+  font-family:'Lora',serif;
+  font-size:.82rem;
+  white-space:nowrap;
+  border:1px solid rgba(169,120,125,.28);
+  background:#fff;
+  color:var(--rose-dark);
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.video-btn:hover{
+  transform:scale(1.04);
+  background:var(--rose-dark);
+  color:#fff;
+  border-color:var(--rose-dark);
+}
+
+.product-actions{
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.video-modal-box{
+  background:var(--white);
+  border-radius:24px;
+  padding:1rem;
+  width:100%;
+  max-width:860px;
+  box-shadow:0 16px 44px rgba(58,30,14,.18);
+  transform:scale(.92);
+  transition:transform .28s;
+}
+
+#video-modal.open .video-modal-box{
+  transform:scale(1);
+}
+
+.video-modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:.4rem .4rem .9rem;
+}
+
+.video-modal-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.2rem;
+  color:var(--brown);
+}
+
+.video-frame{
+  width:100%;
+  aspect-ratio:16 / 9;
+  border-radius:18px;
+  overflow:hidden;
+  background:#000;
+}
+
+.video-frame video{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:contain;
+  background:#000;
+}
+
 .about-section{
   background:linear-gradient(145deg,#6D4F52 0%,#9E767A 100%);
   padding:6.5rem 2rem;
@@ -743,7 +818,6 @@ footer{
   height:100%;
   object-fit:contain;
   border-radius:10px;
-  mix-blend-mode:multiply;
 }
 
 .ci-info{ flex:1; min-width:0; }
@@ -1018,6 +1092,8 @@ footer{
   .hero-actions{flex-direction:column;align-items:center}
   .hero-cta{width:min(100%,300px)}
   .custom-btn{min-width:118px;padding:0 .8rem;font-size:.78rem}
+  .product-actions{justify-content:flex-start}
+  .video-btn{min-width:100px;padding:0 .85rem;font-size:.78rem}
 }
 </style>
 </head>
@@ -1183,6 +1259,19 @@ footer{
       <p class="checkout-note">📲 Ao clicar abaixo, o pedido será enviado direto para o WhatsApp da loja</p>
       <p class="status-msg" id="payment-status"></p>
       <button class="btn-pri" id="whatsapp-checkout-btn" type="button">Enviar pedido no WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="video-modal">
+  <div class="video-modal-box">
+    <div class="video-modal-head">
+      <h3 class="video-modal-title" id="video-modal-title">Vídeo do produto</h3>
+      <button class="x-btn" id="video-close-btn">✕</button>
+    </div>
+
+    <div class="video-frame">
+      <video id="product-video-player" controls playsinline preload="metadata"></video>
     </div>
   </div>
 </div>
@@ -1404,6 +1493,7 @@ function renderProducts() {
     const safeCat     = escapeHtml(CAT_LABELS[p.cat] || p.cat);
     const safeColor   = escapeHtml(p.color);
     const safeImage   = escapeHtml(p.image || '');
+    const safeVideo   = escapeHtml(p.video || '');
     const safeBtnText = p.custom ? escapeHtml(p.buttonText || 'Solicitar') : '';
 
     return `
@@ -1434,7 +1524,10 @@ function renderProducts() {
                    R$ ${fmt(p.price)}
                    <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão</small>
                  </div>
-                 <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>`
+                 <div class="product-actions">
+                   ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
+                   <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
+                 </div>`
           }
         </div>
       </div>
@@ -1484,6 +1577,36 @@ function openCart() {
 function closeCart() {
   document.getElementById('cart-sidebar').classList.remove('open');
   document.getElementById('cart-overlay').classList.remove('open');
+}
+
+function openProductVideo(videoSrc, productName, poster = '') {
+  const modal = document.getElementById('video-modal');
+  const title = document.getElementById('video-modal-title');
+  const player = document.getElementById('product-video-player');
+
+  if (!videoSrc) return;
+
+  title.textContent = `Vídeo: ${productName}`;
+  player.src = videoSrc;
+
+  if (poster) {
+    player.setAttribute('poster', poster);
+  } else {
+    player.removeAttribute('poster');
+  }
+
+  modal.classList.add('open');
+  player.load();
+}
+
+function closeProductVideo() {
+  const modal = document.getElementById('video-modal');
+  const player = document.getElementById('product-video-player');
+
+  player.pause();
+  player.removeAttribute('src');
+  player.load();
+  modal.classList.remove('open');
 }
 
 function updateCheckoutSummary() {
@@ -1582,6 +1705,17 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
     sendCustomOrderToWhatsApp(parseInt(customBtn.dataset.customId, 10));
     return;
   }
+
+  const videoBtn = e.target.closest('.video-btn');
+  if (videoBtn) {
+    openProductVideo(
+      videoBtn.dataset.videoSrc,
+      videoBtn.dataset.videoName,
+      videoBtn.dataset.videoPoster
+    );
+    return;
+  }
+
   const btn = e.target.closest('.add-btn');
   if (!btn) return;
 
@@ -1645,6 +1779,12 @@ document.getElementById('checkout-close-btn').addEventListener('click', () => {
 
 document.getElementById('checkout-modal').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('open');
+});
+
+document.getElementById('video-close-btn').addEventListener('click', closeProductVideo);
+
+document.getElementById('video-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeProductVideo();
 });
 
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
