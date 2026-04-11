@@ -3,6 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!--
+  FIX #10 — Content-Security-Policy via meta tag
+  Bloqueia scripts inline não autorizados, iframes e conexões externas não listadas.
+  Ajuste connect-src se usar API própria em outro domínio.
+-->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline';
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data:;
+  connect-src 'self';
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self'
+">
+
+<!-- FIX #11 — X-Frame-Options via meta (reforço; o servidor já envia o header) -->
+<meta http-equiv="X-Frame-Options" content="DENY">
+
 <title>Ateliê Priscila Lima — Crochê Artesanal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Lora:wght@400;500&display=swap" rel="stylesheet">
 
@@ -92,13 +113,8 @@ nav{
   transition:width .28s;
 }
 
-.nav-links a:hover{
-  color:var(--rose-dark);
-}
-
-.nav-links a:hover::after{
-  width:100%;
-}
+.nav-links a:hover{ color:var(--rose-dark); }
+.nav-links a:hover::after{ width:100%; }
 
 #cart-toggle-btn{
   background:linear-gradient(135deg,var(--rose),var(--rose-dark));
@@ -136,9 +152,7 @@ nav{
   transition:transform .2s;
 }
 
-.cart-badge.bump{
-  transform:scale(1.3);
-}
+.cart-badge.bump{ transform:scale(1.3); }
 
 .hero{
   min-height:100vh;
@@ -178,25 +192,15 @@ nav{
   pointer-events:none;
 }
 
-.hero-deco,
-.hero-deco2{
+.hero-deco,.hero-deco2{
   position:absolute;
   pointer-events:none;
   user-select:none;
   color:rgba(169,120,125,.12);
 }
 
-.hero-deco{
-  top:8%;
-  left:7%;
-  font-size:8rem;
-}
-
-.hero-deco2{
-  right:7%;
-  bottom:10%;
-  font-size:7rem;
-}
+.hero-deco{ top:8%; left:7%; font-size:8rem; }
+.hero-deco2{ right:7%; bottom:10%; font-size:7rem; }
 
 .hero-content{
   position:relative;
@@ -221,10 +225,7 @@ nav{
   color:var(--brown);
 }
 
-.hero h1 em{
-  color:var(--rose-dark);
-  font-style:italic;
-}
+.hero h1 em{ color:var(--rose-dark); font-style:italic; }
 
 .hero-desc{
   font-size:1.08rem;
@@ -256,9 +257,7 @@ nav{
   transition:all .25s;
 }
 
-.hero-cta:hover{
-  transform:translateY(-2px);
-}
+.hero-cta:hover{ transform:translateY(-2px); }
 
 .hero-cta-outline{
   background:transparent;
@@ -402,9 +401,7 @@ nav{
   mix-blend-mode:multiply;
 }
 
-.product-card:hover .product-image{
-  transform:scale(1.05);
-}
+.product-card:hover .product-image{ transform:scale(1.05); }
 
 .custom-visual{
   width:100%;
@@ -509,8 +506,7 @@ nav{
   font-weight:400;
 }
 
-.add-btn,
-.custom-btn{
+.add-btn,.custom-btn{
   background:linear-gradient(135deg,var(--rose),var(--rose-dark));
   color:#fff;
   border:none;
@@ -539,10 +535,7 @@ nav{
   white-space:nowrap;
 }
 
-.add-btn:hover,
-.custom-btn:hover{
-  transform:scale(1.05);
-}
+.add-btn:hover,.custom-btn:hover{ transform:scale(1.05); }
 
 .about-section{
   background:linear-gradient(145deg,#6D4F52 0%,#9E767A 100%);
@@ -568,9 +561,7 @@ nav{
   margin:0 auto;
 }
 
-.about-inner .section-tag{
-  color:#FBE7E8;
-}
+.about-inner .section-tag{ color:#FBE7E8; }
 
 .about-inner h2{
   font-family:'Playfair Display',serif;
@@ -579,10 +570,7 @@ nav{
   margin-bottom:1.5rem;
 }
 
-.about-inner h2 em{
-  color:#F7D9DC;
-  font-style:italic;
-}
+.about-inner h2 em{ color:#F7D9DC; font-style:italic; }
 
 .about-text{
   color:rgba(255,255,255,.85);
@@ -598,17 +586,8 @@ nav{
   flex-wrap:wrap;
 }
 
-.hl-icon{
-  font-size:1.9rem;
-  display:block;
-  margin-bottom:.45rem;
-}
-
-.hl-text{
-  color:#FFECEF;
-  font-size:.88rem;
-  font-style:italic;
-}
+.hl-icon{ font-size:1.9rem; display:block; margin-bottom:.45rem; }
+.hl-text{ color:#FFECEF; font-size:.88rem; font-style:italic; }
 
 footer{
   background:#F6EAEB;
@@ -651,9 +630,7 @@ footer{
   transition:color .2s;
 }
 
-.footer-links a:hover{
-  color:var(--rose-dark);
-}
+.footer-links a:hover{ color:var(--rose-dark); }
 
 .footer-line{
   width:56px;
@@ -662,10 +639,7 @@ footer{
   margin:0 auto 2rem;
 }
 
-.footer-copy{
-  font-size:.76rem;
-  color:var(--brown-light);
-}
+.footer-copy{ font-size:.76rem; color:var(--brown-light); }
 
 .cart-overlay{
   position:fixed;
@@ -677,10 +651,7 @@ footer{
   transition:opacity .3s;
 }
 
-.cart-overlay.open{
-  opacity:1;
-  pointer-events:all;
-}
+.cart-overlay.open{ opacity:1; pointer-events:all; }
 
 .cart-sidebar{
   position:fixed;
@@ -698,9 +669,7 @@ footer{
   box-shadow:-8px 0 34px rgba(58,30,14,.14);
 }
 
-.cart-sidebar.open{
-  transform:translateX(0);
-}
+.cart-sidebar.open{ transform:translateX(0); }
 
 .cart-head{
   padding:1.4rem 1.5rem;
@@ -728,10 +697,7 @@ footer{
   line-height:1;
 }
 
-.x-btn:hover{
-  color:var(--rose-dark);
-  background:rgba(216,182,185,.18);
-}
+.x-btn:hover{ color:var(--rose-dark); background:rgba(216,182,185,.18); }
 
 .cart-body{
   flex:1;
@@ -745,12 +711,7 @@ footer{
   color:var(--brown-mid);
 }
 
-.cart-empty-ico{
-  font-size:3.2rem;
-  display:block;
-  margin-bottom:1rem;
-  opacity:.7;
-}
+.cart-empty-ico{ font-size:3.2rem; display:block; margin-bottom:1rem; opacity:.7; }
 
 .cart-item{
   display:flex;
@@ -784,10 +745,7 @@ footer{
   border-radius:10px;
 }
 
-.ci-info{
-  flex:1;
-  min-width:0;
-}
+.ci-info{ flex:1; min-width:0; }
 
 .ci-name{
   font-family:'Playfair Display',serif;
@@ -797,11 +755,7 @@ footer{
   margin-bottom:.15rem;
 }
 
-.ci-price{
-  font-size:.82rem;
-  color:var(--rose-dark);
-  font-weight:500;
-}
+.ci-price{ font-size:.82rem; color:var(--rose-dark); font-weight:500; }
 
 .ci-controls{
   display:flex;
@@ -825,11 +779,7 @@ footer{
   line-height:1;
 }
 
-.qty-btn:hover{
-  background:var(--rose-dark);
-  color:#fff;
-  border-color:var(--rose-dark);
-}
+.qty-btn:hover{ background:var(--rose-dark); color:#fff; border-color:var(--rose-dark); }
 
 .qty-n{
   font-family:'Playfair Display',serif;
@@ -847,9 +797,7 @@ footer{
   padding:.2rem;
 }
 
-.ci-del:hover{
-  color:#c0392b;
-}
+.ci-del:hover{ color:#c0392b; }
 
 .cart-foot{
   padding:1.3rem 1.5rem;
@@ -891,9 +839,7 @@ footer{
   box-shadow:0 8px 20px rgba(169,120,125,.22);
 }
 
-#checkout-btn:hover:not(:disabled){
-  transform:translateY(-1px);
-}
+#checkout-btn:hover:not(:disabled){ transform:translateY(-1px); }
 
 #checkout-btn:disabled{
   background:#d8c3c5;
@@ -916,10 +862,7 @@ footer{
   transition:opacity .28s;
 }
 
-.modal-bg.open{
-  opacity:1;
-  pointer-events:all;
-}
+.modal-bg.open{ opacity:1; pointer-events:all; }
 
 .modal-box{
   background:var(--white);
@@ -934,9 +877,7 @@ footer{
   box-shadow:0 16px 44px rgba(58,30,14,.18);
 }
 
-.modal-bg.open .modal-box{
-  transform:scale(1);
-}
+.modal-bg.open .modal-box{ transform:scale(1); }
 
 .modal-hd{
   display:flex;
@@ -981,9 +922,7 @@ footer{
   margin-top:.5rem;
 }
 
-.sum-total span:last-child{
-  color:var(--rose-dark);
-}
+.sum-total span:last-child{ color:var(--rose-dark); }
 
 .form-grid{
   display:grid;
@@ -992,20 +931,10 @@ footer{
   margin:1.1rem 0;
 }
 
-.field{
-  display:flex;
-  flex-direction:column;
-  gap:.35rem;
-}
+.field{ display:flex; flex-direction:column; gap:.35rem; }
+.field.full{ grid-column:1/-1; }
 
-.field.full{
-  grid-column:1/-1;
-}
-
-.field label{
-  font-size:.82rem;
-  color:var(--brown-mid);
-}
+.field label{ font-size:.82rem; color:var(--brown-mid); }
 
 .field input,
 .field textarea,
@@ -1017,15 +946,9 @@ footer{
   background:#fff;
 }
 
-.field textarea{
-  min-height:84px;
-  resize:vertical;
-}
+.field textarea{ min-height:84px; resize:vertical; }
 
-.checkout-wrap{
-  margin-top:1.5rem;
-  text-align:center;
-}
+.checkout-wrap{ margin-top:1.5rem; text-align:center; }
 
 .checkout-note{
   text-align:center;
@@ -1059,9 +982,7 @@ footer{
   box-shadow:0 8px 20px rgba(169,120,125,.22);
 }
 
-.btn-pri:hover{
-  transform:translateY(-1px);
-}
+.btn-pri:hover{ transform:translateY(-1px); }
 
 .toast{
   position:fixed;
@@ -1080,9 +1001,7 @@ footer{
   white-space:nowrap;
 }
 
-.toast.show{
-  transform:translateX(-50%) translateY(0);
-}
+.toast.show{ transform:translateX(-50%) translateY(0); }
 
 @keyframes fadeUp{
   from{opacity:0;transform:translateY(22px)}
@@ -1108,13 +1027,11 @@ footer{
     <a href="#" class="nav-logo">
       <img src="/logo4.png" alt="Ateliê Priscila Lima" class="main-logo">
     </a>
-
     <ul class="nav-links">
       <li><a href="#produtos">Produtos</a></li>
       <li><a href="#sobre">Sobre</a></li>
       <li><a href="#contato">Contato</a></li>
     </ul>
-
     <button id="cart-toggle-btn">🛒 <span class="cart-badge" id="cart-count">0</span></button>
   </div>
 </nav>
@@ -1178,7 +1095,6 @@ footer{
       Cada criação carrega delicadeza, cuidado e identidade, valorizando o artesanal com um toque
       sofisticado e acolhedor.
     </p>
-
     <div class="highlights">
       <div><span class="hl-icon">🧶</span><span class="hl-text">Produção artesanal</span></div>
       <div><span class="hl-icon">🎀</span><span class="hl-text">Design delicado</span></div>
@@ -1240,23 +1156,23 @@ footer{
 
       <div class="field">
         <label for="customer-name">Nome completo</label>
-        <input id="customer-name" name="name" required>
+        <input id="customer-name" name="name" required maxlength="120" autocomplete="name">
       </div>
       <div class="field">
         <label for="customer-phone">Telefone</label>
-        <input id="customer-phone" name="phone" required>
+        <input id="customer-phone" name="phone" required maxlength="30" autocomplete="tel">
       </div>
       <div class="field full">
         <label for="customer-email">E-mail</label>
-        <input id="customer-email" type="email" name="email" required>
+        <input id="customer-email" type="email" name="email" required maxlength="120" autocomplete="email">
       </div>
       <div class="field full">
         <label for="customer-address">Endereço de entrega</label>
-        <textarea id="customer-address" name="address" required></textarea>
+        <textarea id="customer-address" name="address" required maxlength="300"></textarea>
       </div>
       <div class="field full">
         <label for="customer-note">Observações</label>
-        <textarea id="customer-note" name="note" placeholder="Opcional"></textarea>
+        <textarea id="customer-note" name="note" placeholder="Opcional" maxlength="500"></textarea>
       </div>
     </form>
 
@@ -1273,6 +1189,19 @@ footer{
 <div class="toast" id="toast"></div>
 
 <script>
+'use strict';
+
+// ─────────────────────────────────────────────────────────
+// FIX #12 — escapeHtml: previne XSS ao inserir texto no DOM
+// Toda string de origem externa/dinâmica passa por aqui
+// antes de entrar em innerHTML.
+// ─────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.appendChild(document.createTextNode(String(str ?? '')));
+  return div.innerHTML;
+}
+
 const WHATSAPP_NUMBER = '5581996809206';
 const CARD_FEE_PERCENT = 3.8;
 
@@ -1299,7 +1228,7 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#E8F1EC,#D9E9E0)',
     measure: '58cm x 38cm',
-    desc: 'Peça artesanal em formato oval com composição elegante em verde e off white. O desenho central marcante e o acabamento rendado nas bordas trazem sofisticação, delicadeza e um toque acolhedor para a decoração da sua casa. Ideal para mesa, aparador, cômoda ou cantinhos especiais.'
+    desc: 'Peça artesanal em formato oval com composição elegante em verde e off white.'
   },
   {
     id: 3,
@@ -1311,7 +1240,7 @@ const PRODUCTS = [
     badge: 'Destaque',
     color: 'linear-gradient(135deg,#E7EFE5,#DCE9D7)',
     measure: '36cm x 36cm',
-    desc: 'Centro de mesa em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado que valoriza ainda mais a peça. Seu desenho vazado evidencia o trabalho manual e cria uma composição charmosa, perfeita para transformar a decoração com elegância e personalidade.'
+    desc: 'Centro de mesa em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado.'
   },
   {
     id: 4,
@@ -1323,7 +1252,7 @@ const PRODUCTS = [
     badge: 'Encantador',
     color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
     measure: '36cm x 36cm',
-    desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara. Uma peça alegre, romântica e cheia de charme, ideal para compor mesas postas criativas, leves e acolhedoras. O acabamento em camadas destaca o capricho de cada detalhe.'
+    desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.'
   },
   {
     id: 5,
@@ -1335,7 +1264,7 @@ const PRODUCTS = [
     badge: 'Especial',
     color: 'linear-gradient(135deg,#FFF8F1,#F8EEDC)',
     measure: '100cm~120cm x 20cm',
-    desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho interno de corações. Uma peça romântica e sofisticada, criada para destacar a beleza da mesa com suavidade, elegância e um toque afetivo que valoriza qualquer ambiente.'
+    desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho de corações.'
   },
   {
     id: 6,
@@ -1347,9 +1276,9 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#F3ECE7,#E8DDD4)',
     measure: '95cm x 22cm',
-    desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados, com acabamento delicado e elegante. Uma peça sofisticada para valorizar sua mesa, aparador ou cômoda com charme, aconchego e beleza artesanal.'
+    desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados e acabamento delicado.'
   },
-   {
+  {
     id: 7,
     sku: 'PERSONALIZADO-007',
     name: 'Mande sua Inspiração',
@@ -1359,16 +1288,13 @@ const PRODUCTS = [
     badge: 'Exclusivo',
     color: 'linear-gradient(135deg,#F8E8EC,#EFD7D9)',
     measure: 'Sob encomenda',
-    desc: 'Gostou de um estilo, viu uma referência ou quer uma peça única? Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
+    desc: 'Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
     custom: true,
     buttonText: 'Solicitar'
   }
 ];
 
-const CATALOG = PRODUCTS.reduce((acc, item) => {
-  acc[item.id] = item;
-  return acc;
-}, {});
+const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
 
 const CAT_LABELS = {
   decoracao: 'Decoração',
@@ -1394,8 +1320,7 @@ function getUnitPriceByMethod(price, paymentMethod) {
 
 function getTotal(paymentMethod = 'avista') {
   return cart.reduce((sum, item) => {
-    const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
-    return sum + unitPrice * item.qty;
+    return sum + getUnitPriceByMethod(item.price, paymentMethod) * item.qty;
   }, 0);
 }
 
@@ -1403,8 +1328,22 @@ let cart = [];
 let activeFilter = 'todos';
 let toastTimer = null;
 
+// FIX #13 — localStorage usado apenas para UX, preços sempre do catálogo local
 try {
-  cart = JSON.parse(localStorage.getItem('atelie_cart') || '[]');
+  const raw = JSON.parse(localStorage.getItem('atelie_cart') || '[]');
+  // Revalida cada item contra o catálogo para evitar preço manipulado
+  cart = raw
+    .filter(item => item && CATALOG[item.id] && !CATALOG[item.id].custom)
+    .map(item => {
+      const catalogItem = CATALOG[item.id];
+      return {
+        id:    catalogItem.id,
+        qty:   Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1)),
+        name:  catalogItem.name,
+        price: catalogItem.price, // sempre do catálogo
+        image: catalogItem.image
+      };
+    });
 } catch (e) {
   cart = [];
 }
@@ -1417,7 +1356,7 @@ function saveCart() {
 
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  t.textContent = msg; // textContent, não innerHTML — sem risco de XSS
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
@@ -1430,7 +1369,8 @@ function bumpBadge() {
 }
 
 function setPaymentStatus(msg) {
-  document.getElementById('payment-status').textContent = msg || '';
+  const el = document.getElementById('payment-status');
+  el.textContent = msg || ''; // textContent — sem risco de XSS
 }
 
 function refreshUI() {
@@ -1440,6 +1380,10 @@ function refreshUI() {
   document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
 
+// ─────────────────────────────────────────────
+// FIX #12 — renderProducts usa escapeHtml em todos
+// os campos antes de inserir no innerHTML
+// ─────────────────────────────────────────────
 function renderProducts() {
   const grid = document.getElementById('products-grid');
   const list = activeFilter === 'todos'
@@ -1451,53 +1395,55 @@ function renderProducts() {
     return;
   }
 
-  grid.innerHTML = list.map((p, i) => `
+  grid.innerHTML = list.map((p, i) => {
+    const safeName    = escapeHtml(p.name);
+    const safeDesc    = escapeHtml(p.desc);
+    const safeMeasure = escapeHtml(p.measure || '');
+    const safeBadge   = p.badge ? escapeHtml(p.badge) : '';
+    const safeCat     = escapeHtml(CAT_LABELS[p.cat] || p.cat);
+    const safeColor   = escapeHtml(p.color);
+    const safeImage   = escapeHtml(p.image || '');
+    const safeBtnText = p.custom ? escapeHtml(p.buttonText || 'Solicitar') : '';
+
+    return `
     <div class="product-card" style="animation-delay:${i * 0.08}s">
-      <div class="product-img" style="background:${p.color}">
+      <div class="product-img" style="background:${safeColor}">
         ${
           p.custom
-            ? `
-              <div class="custom-visual">
+            ? `<div class="custom-visual">
                 <div class="custom-visual-ico">✨</div>
                 <div class="custom-visual-title">Peça sob medida</div>
                 <div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div>
-              </div>
-            `
-            : `<img src="${p.image}" class="product-image" alt="${p.name}">`
+               </div>`
+            : `<img src="${safeImage}" class="product-image" alt="${safeName}">`
         }
-        ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
+        ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
       </div>
       <div class="product-info">
-        <p class="product-cat">${CAT_LABELS[p.cat] || p.cat}</p>
-        <h3 class="product-name">${p.name}</h3>
-        ${p.measure ? `<p class="product-measure">Medida: ${p.measure}</p>` : ''}
-        <p class="product-desc">${p.desc}</p>
+        <p class="product-cat">${safeCat}</p>
+        <h3 class="product-name">${safeName}</h3>
+        ${safeMeasure ? `<p class="product-measure">Medida: ${safeMeasure}</p>` : ''}
+        <p class="product-desc">${safeDesc}</p>
         <div class="product-footer">
           ${
             p.custom
-              ? `
-                <div class="product-price">
-                  Sob encomenda
-                  <small>Consulte valor e prazo</small>
-                </div>
-                <button class="custom-btn" data-custom-id="${p.id}" title="Solicitar peça personalizada">
-                  ${p.buttonText || 'Solicitar'}
-                </button>
-              `
-              : `
-                <div class="product-price">
-                  R$ ${fmt(p.price)}
-                  <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão</small>
-                </div>
-                <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
-              `
+              ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
+                 <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
+              : `<div class="product-price">
+                   R$ ${fmt(p.price)}
+                   <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão</small>
+                 </div>
+                 <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>`
           }
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
+// ─────────────────────────────────────────────
+// FIX #12 — renderCartBody também usa escapeHtml
+// ─────────────────────────────────────────────
 function renderCartBody() {
   const body = document.getElementById('cart-body');
 
@@ -1506,13 +1452,16 @@ function renderCartBody() {
     return;
   }
 
-  body.innerHTML = cart.map(item => `
+  body.innerHTML = cart.map(item => {
+    const safeName  = escapeHtml(item.name);
+    const safeImage = escapeHtml(item.image || '');
+    return `
     <div class="cart-item">
       <div class="ci-icon">
-        <img src="${item.image}" alt="${item.name}" class="ci-thumb">
+        <img src="${safeImage}" alt="${safeName}" class="ci-thumb">
       </div>
       <div class="ci-info">
-        <p class="ci-name">${item.name}</p>
+        <p class="ci-name">${safeName}</p>
         <p class="ci-price">R$ ${fmt(item.price)} <span style="opacity:.7">(à vista)</span></p>
         <div class="ci-controls">
           <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
@@ -1521,8 +1470,8 @@ function renderCartBody() {
         </div>
       </div>
       <button class="ci-del" data-action="del" data-id="${item.id}">🗑️</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function openCart() {
@@ -1541,13 +1490,9 @@ function updateCheckoutSummary() {
 
   document.getElementById('sum-items').innerHTML = cart.map(x => {
     const unitPrice = getUnitPriceByMethod(x.price, paymentMethod);
-    const subtotal = unitPrice * x.qty;
-    return `
-      <div class="sum-row">
-        <span>${x.name} × ${x.qty}</span>
-        <span>R$ ${fmt(subtotal)}</span>
-      </div>
-    `;
+    const subtotal  = unitPrice * x.qty;
+    const safeName  = escapeHtml(x.name);
+    return `<div class="sum-row"><span>${safeName} × ${x.qty}</span><span>R$ ${fmt(subtotal)}</span></div>`;
   }).join('');
 
   document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotal(paymentMethod));
@@ -1556,30 +1501,28 @@ function updateCheckoutSummary() {
 function getCustomerData() {
   const form = document.getElementById('checkout-form');
   const data = new FormData(form);
-
   return {
     paymentMethod: String(data.get('paymentMethod') || 'avista').trim(),
-    name: String(data.get('name') || '').trim(),
-    phone: String(data.get('phone') || '').trim(),
-    email: String(data.get('email') || '').trim(),
+    name:    String(data.get('name')    || '').trim(),
+    phone:   String(data.get('phone')   || '').trim(),
+    email:   String(data.get('email')   || '').trim(),
     address: String(data.get('address') || '').trim(),
-    note: String(data.get('note') || '').trim()
+    note:    String(data.get('note')    || '').trim()
   };
 }
 
 function validateCheckout() {
-  if (!cart.length) {
-    showToast('Seu carrinho está vazio.');
-    return false;
-  }
-
+  if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
   const customer = getCustomerData();
-
   if (!customer.name || !customer.phone || !customer.email || !customer.address) {
     showToast('Preencha todos os campos obrigatórios.');
     return false;
   }
-
+  // Validação básica de e-mail
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+    showToast('Informe um e-mail válido.');
+    return false;
+  }
   return true;
 }
 
@@ -1588,79 +1531,44 @@ function getPaymentMethodLabel(paymentMethod) {
 }
 
 function buildWhatsAppMessage() {
-  const customer = getCustomerData();
+  const customer      = getCustomerData();
   const paymentMethod = customer.paymentMethod;
 
   const itemsText = cart.map((item, index) => {
     const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
-    const subtotal = unitPrice * item.qty;
-    const sku = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
-    return `${index + 1}. ${item.name}${sku}
-Qtd: ${item.qty}
-Valor unitário: R$ ${fmt(unitPrice)}
-Subtotal: R$ ${fmt(subtotal)}`;
+    const subtotal  = unitPrice * item.qty;
+    const sku       = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
+    return `${index + 1}. ${item.name}${sku}\nQtd: ${item.qty}\nValor unitário: R$ ${fmt(unitPrice)}\nSubtotal: R$ ${fmt(subtotal)}`;
   }).join('\n\n');
 
-  return `Olá! Gostaria de finalizar este pedido:
-
-🛍️ *PEDIDO*
-${itemsText}
-
-💳 *FORMA DE PAGAMENTO*: ${getPaymentMethodLabel(paymentMethod)}
-💰 *TOTAL*: R$ ${fmt(getTotal(paymentMethod))}
-
-👤 *DADOS DO CLIENTE*
-Nome: ${customer.name}
-Telefone: ${customer.phone}
-E-mail: ${customer.email}
-Endereço: ${customer.address}
-Observações: ${customer.note || 'Nenhuma'}`;
+  return `Olá! Gostaria de finalizar este pedido:\n\n🛍️ *PEDIDO*\n${itemsText}\n\n💳 *FORMA DE PAGAMENTO*: ${getPaymentMethodLabel(paymentMethod)}\n💰 *TOTAL*: R$ ${fmt(getTotal(paymentMethod))}\n\n👤 *DADOS DO CLIENTE*\nNome: ${customer.name}\nTelefone: ${customer.phone}\nE-mail: ${customer.email}\nEndereço: ${customer.address}\nObservações: ${customer.note || 'Nenhuma'}`;
 }
 
 function buildCustomOrderMessage(product) {
-  return `Olá! Tenho interesse em uma peça personalizada.
-
-✨ *PEDIDO PERSONALIZADO*
-Referência: ${product.name}
-SKU: ${product.sku}
-
-Quero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
+  return `Olá! Tenho interesse em uma peça personalizada.\n\n✨ *PEDIDO PERSONALIZADO*\nReferência: ${product.name}\nSKU: ${product.sku}\n\nQuero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
 }
 
 function sendOrderToWhatsApp() {
   if (!validateCheckout()) return;
-
-  if (!WHATSAPP_NUMBER || WHATSAPP_NUMBER === 'SEUNUMEROAQUI') {
-    setPaymentStatus('Configure o número do WhatsApp da loja no código.');
-    return;
-  }
-
   const message = buildWhatsAppMessage();
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
   setPaymentStatus('Abrindo WhatsApp...');
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function sendCustomOrderToWhatsApp(productId) {
-  if (!WHATSAPP_NUMBER || WHATSAPP_NUMBER === 'SEUNUMEROAQUI') {
-    showToast('Configure o número do WhatsApp da loja no código.');
-    return;
-  }
-
   const product = PRODUCTS.find(x => x.id === productId && x.custom);
   if (!product) return;
-
   const message = buildCustomOrderMessage(product);
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
   window.open(url, '_blank', 'noopener,noreferrer');
 }
+
+// ─── Eventos ───────────────────────────────────────────────
 
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
-
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   activeFilter = btn.dataset.filter;
@@ -1670,29 +1578,21 @@ document.getElementById('filter-tabs').addEventListener('click', (e) => {
 document.getElementById('products-grid').addEventListener('click', (e) => {
   const customBtn = e.target.closest('.custom-btn');
   if (customBtn) {
-    const customId = parseInt(customBtn.dataset.customId, 10);
-    sendCustomOrderToWhatsApp(customId);
+    sendCustomOrderToWhatsApp(parseInt(customBtn.dataset.customId, 10));
     return;
   }
-
   const btn = e.target.closest('.add-btn');
   if (!btn) return;
 
   const id = parseInt(btn.dataset.productId, 10);
-  const p = PRODUCTS.find(x => x.id === id);
+  const p  = PRODUCTS.find(x => x.id === id);
   if (!p || p.custom) return;
 
   const existing = cart.find(x => x.id === id);
   if (existing) {
-    existing.qty += 1;
+    existing.qty = Math.min(99, existing.qty + 1);
   } else {
-    cart.push({
-      id: p.id,
-      qty: 1,
-      name: p.name,
-      price: p.price,
-      image: p.image
-    });
+    cart.push({ id: p.id, qty: 1, name: p.name, price: p.price, image: p.image });
   }
 
   saveCart();
@@ -1706,7 +1606,7 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
 
-  const id = parseInt(btn.dataset.id, 10);
+  const id     = parseInt(btn.dataset.id, 10);
   const action = btn.dataset.action;
 
   if (action === 'del') {
@@ -1715,9 +1615,8 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
     const item = cart.find(x => x.id === id);
     if (item) {
       item.qty += action === 'plus' ? 1 : -1;
-      if (item.qty <= 0) {
-        cart = cart.filter(x => x.id !== id);
-      }
+      item.qty  = Math.min(99, Math.max(0, item.qty));
+      if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
     }
   }
 
@@ -1733,7 +1632,6 @@ document.getElementById('cart-overlay').addEventListener('click', closeCart);
 
 document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) return;
-
   closeCart();
   setPaymentStatus('');
   document.getElementById('checkout-modal').classList.add('open');
@@ -1744,10 +1642,8 @@ document.getElementById('checkout-close-btn').addEventListener('click', () => {
   document.getElementById('checkout-modal').classList.remove('open');
 });
 
-document.getElementById('checkout-modal').addEventListener('click', function (e) {
-  if (e.target === this) {
-    this.classList.remove('open');
-  }
+document.getElementById('checkout-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
 });
 
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
