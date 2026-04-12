@@ -1399,8 +1399,8 @@ const CAT_LABELS = {
 const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 function getCardPrice(price) {
-  return Math.ceil(Number(price) * (1 + CARD_FEE_PERCENT / 100));
-  return Number((Math.ceil(base) - 0.01).toFixed(2));
+  const base = Number(price) * (1 + CARD_FEE_PERCENT / 100);
+  return Number((Math.floor(base) + 0.99).toFixed(2));
 }
 
 function getPaymentMethod() {
