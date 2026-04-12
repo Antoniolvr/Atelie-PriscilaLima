@@ -1400,6 +1400,7 @@ const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 function getCardPrice(price) {
   return Math.ceil(Number(price) * (1 + CARD_FEE_PERCENT / 100));
+  return Number((Math.ceil(base) - 0.01).toFixed(2));
 }
 
 function getPaymentMethod() {
@@ -1523,14 +1524,14 @@ function renderProducts() {
             p.custom
               ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
                  <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
-              : `<div class="product-price">
-                   R$ ${fmt(p.price)}
-                   <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão</small>
-                 </div>
-                 <div class="product-actions">
-                   ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
-                   <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
-                 </div>`
+              : : `<div class="product-price">
+     R$ ${fmt(p.price)}
+     <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão em até 6x sem juros</small>
+   </div>
+   <div class="product-actions">
+     ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
+     <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
+   </div>`
           }
         </div>
       </div>
