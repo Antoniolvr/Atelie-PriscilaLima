@@ -902,14 +902,6 @@ footer{
   color:var(--rose-dark);
 }
 
-.cart-pay-note{
-  text-align:center;
-  font-size:.8rem;
-  color:var(--brown-mid);
-  margin-bottom:.9rem;
-  font-style:italic;
-}
-
 #checkout-btn{
   width:100%;
   padding:1rem;
@@ -1069,13 +1061,6 @@ footer{
 
 .btn-pri:hover{ transform:translateY(-1px); }
 
-.btn-pri[disabled]{
-  opacity:.72;
-  cursor:not-allowed;
-  transform:none;
-  box-shadow:none;
-}
-
 .toast{
   position:fixed;
   bottom:2rem;
@@ -1225,11 +1210,60 @@ footer{
       <span class="cart-grand-label">Total</span>
       <span class="cart-grand-value" id="cart-total">R$ 0,00</span>
     </div>
-    <p class="cart-pay-note">Pagamento seguro via Stripe com Pix e cartão.</p>
-    <button id="checkout-btn" disabled>Ir para pagamento →</button>
+    <button id="checkout-btn" disabled>Finalizar Pedido no WhatsApp →</button>
   </div>
 </aside>
 
+<div class="modal-bg" id="checkout-modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3>Finalizar Pedido</h3>
+      <button class="x-btn" id="checkout-close-btn">✕</button>
+    </div>
+
+    <p class="sum-title">📋 Resumo do Pedido</p>
+    <div id="sum-items"></div>
+
+    <form id="checkout-form" class="form-grid">
+      <div class="field full">
+        <label for="payment-method">Forma de pagamento</label>
+        <select id="payment-method" name="paymentMethod" required>
+          <option value="avista">À vista</option>
+          <option value="cartao">Cartão</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="customer-name">Nome completo</label>
+        <input id="customer-name" name="name" required maxlength="120" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="customer-phone">Telefone</label>
+        <input id="customer-phone" name="phone" required maxlength="30" autocomplete="tel">
+      </div>
+      <div class="field full">
+        <label for="customer-email">E-mail</label>
+        <input id="customer-email" type="email" name="email" required maxlength="120" autocomplete="email">
+      </div>
+      <div class="field full">
+        <label for="customer-address">Endereço de entrega</label>
+        <textarea id="customer-address" name="address" required maxlength="300"></textarea>
+      </div>
+      <div class="field full">
+        <label for="customer-note">Observações</label>
+        <textarea id="customer-note" name="note" placeholder="Opcional" maxlength="500"></textarea>
+      </div>
+    </form>
+
+    <div class="sum-total"><span>Total</span><span id="sum-total-val">R$ 0,00</span></div>
+
+    <div class="checkout-wrap">
+      <p class="checkout-note">📲 Ao clicar abaixo, o pedido será enviado direto para o WhatsApp da loja</p>
+      <p class="status-msg" id="payment-status"></p>
+      <button class="btn-pri" id="whatsapp-checkout-btn" type="button">Enviar pedido no WhatsApp</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="video-modal">
   <div class="video-modal-box">
@@ -1246,10 +1280,14 @@ footer{
 
 <div class="toast" id="toast"></div>
 
-
 <script>
 'use strict';
 
+// ─────────────────────────────────────────────────────────
+// FIX #12 — escapeHtml: previne XSS ao inserir texto no DOM
+// Toda string de origem externa/dinâmica passa por aqui
+// antes de entrar em innerHTML.
+// ─────────────────────────────────────────────────────────
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(String(str ?? '')));
@@ -1257,6 +1295,7 @@ function escapeHtml(str) {
 }
 
 const WHATSAPP_NUMBER = '5581996809206';
+const CARD_FEE_PERCENT = 3.8;
 
 const PRODUCTS = [
   {
@@ -1348,10 +1387,7 @@ const PRODUCTS = [
   }
 ];
 
-const CATALOG = PRODUCTS.reduce((acc, item) => {
-  acc[item.id] = item;
-  return acc;
-}, {});
+const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
 
 const CAT_LABELS = {
   decoracao: 'Decoração',
@@ -1362,22 +1398,42 @@ const CAT_LABELS = {
 
 const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
+function getCardPrice(price) {
+  return Math.ceil(Number(price) * (1 + CARD_FEE_PERCENT / 100));
+}
+
+function getPaymentMethod() {
+  const select = document.getElementById('payment-method');
+  return select ? select.value : 'avista';
+}
+
+function getUnitPriceByMethod(price, paymentMethod) {
+  return paymentMethod === 'cartao' ? getCardPrice(price) : Number(price);
+}
+
+function getTotal(paymentMethod = 'avista') {
+  return cart.reduce((sum, item) => {
+    return sum + getUnitPriceByMethod(item.price, paymentMethod) * item.qty;
+  }, 0);
+}
+
 let cart = [];
 let activeFilter = 'todos';
 let toastTimer = null;
-let checkoutLoading = false;
 
+// FIX #13 — localStorage usado apenas para UX, preços sempre do catálogo local
 try {
   const raw = JSON.parse(localStorage.getItem('atelie_cart') || '[]');
+  // Revalida cada item contra o catálogo para evitar preço manipulado
   cart = raw
     .filter(item => item && CATALOG[item.id] && !CATALOG[item.id].custom)
     .map(item => {
       const catalogItem = CATALOG[item.id];
       return {
-        id: catalogItem.id,
-        qty: Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1)),
-        name: catalogItem.name,
-        price: catalogItem.price,
+        id:    catalogItem.id,
+        qty:   Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1)),
+        name:  catalogItem.name,
+        price: catalogItem.price, // sempre do catálogo
         image: catalogItem.image
       };
     });
@@ -1391,20 +1447,9 @@ function saveCart() {
   } catch (e) {}
 }
 
-function clearCart() {
-  cart = [];
-  saveCart();
-  refreshUI();
-  renderCartBody();
-}
-
-function getTotal() {
-  return cart.reduce((sum, item) => sum + (Number(item.price) * item.qty), 0);
-}
-
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
+  t.textContent = msg; // textContent, não innerHTML — sem risco de XSS
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
@@ -1416,13 +1461,22 @@ function bumpBadge() {
   setTimeout(() => b.classList.remove('bump'), 300);
 }
 
+function setPaymentStatus(msg) {
+  const el = document.getElementById('payment-status');
+  el.textContent = msg || ''; // textContent — sem risco de XSS
+}
+
 function refreshUI() {
   const count = cart.reduce((s, x) => s + x.qty, 0);
   document.getElementById('cart-count').textContent = count;
-  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotal());
-  document.getElementById('checkout-btn').disabled = cart.length === 0 || checkoutLoading;
+  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotal('avista'));
+  document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
 
+// ─────────────────────────────────────────────
+// FIX #12 — renderProducts usa escapeHtml em todos
+// os campos antes de inserir no innerHTML
+// ─────────────────────────────────────────────
 function renderProducts() {
   const grid = document.getElementById('products-grid');
   const list = activeFilter === 'todos'
@@ -1435,14 +1489,14 @@ function renderProducts() {
   }
 
   grid.innerHTML = list.map((p, i) => {
-    const safeName = escapeHtml(p.name);
-    const safeDesc = escapeHtml(p.desc);
+    const safeName    = escapeHtml(p.name);
+    const safeDesc    = escapeHtml(p.desc);
     const safeMeasure = escapeHtml(p.measure || '');
-    const safeBadge = p.badge ? escapeHtml(p.badge) : '';
-    const safeCat = escapeHtml(CAT_LABELS[p.cat] || p.cat);
-    const safeColor = escapeHtml(p.color);
-    const safeImage = escapeHtml(p.image || '');
-    const safeVideo = escapeHtml(p.video || '');
+    const safeBadge   = p.badge ? escapeHtml(p.badge) : '';
+    const safeCat     = escapeHtml(CAT_LABELS[p.cat] || p.cat);
+    const safeColor   = escapeHtml(p.color);
+    const safeImage   = escapeHtml(p.image || '');
+    const safeVideo   = escapeHtml(p.video || '');
     const safeBtnText = p.custom ? escapeHtml(p.buttonText || 'Solicitar') : '';
 
     return `
@@ -1467,11 +1521,11 @@ function renderProducts() {
         <div class="product-footer">
           ${
             p.custom
-              ? `<div class="product-price">Sob encomenda<small>Solicite orçamento no WhatsApp</small></div>
+              ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
                  <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
               : `<div class="product-price">
                    R$ ${fmt(p.price)}
-                   <small>Pagamento via Stripe com Pix ou cartão</small>
+                   <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão</small>
                  </div>
                  <div class="product-actions">
                    ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
@@ -1484,6 +1538,9 @@ function renderProducts() {
   }).join('');
 }
 
+// ─────────────────────────────────────────────
+// FIX #12 — renderCartBody também usa escapeHtml
+// ─────────────────────────────────────────────
 function renderCartBody() {
   const body = document.getElementById('cart-body');
 
@@ -1493,7 +1550,7 @@ function renderCartBody() {
   }
 
   body.innerHTML = cart.map(item => {
-    const safeName = escapeHtml(item.name);
+    const safeName  = escapeHtml(item.name);
     const safeImage = escapeHtml(item.image || '');
     return `
     <div class="cart-item">
@@ -1502,7 +1559,7 @@ function renderCartBody() {
       </div>
       <div class="ci-info">
         <p class="ci-name">${safeName}</p>
-        <p class="ci-price">R$ ${fmt(item.price)}</p>
+        <p class="ci-price">R$ ${fmt(item.price)} <span style="opacity:.7">(à vista)</span></p>
         <div class="ci-controls">
           <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
           <span class="qty-n">${item.qty}</span>
@@ -1555,14 +1612,75 @@ function closeProductVideo() {
   modal.classList.remove('open');
 }
 
+function updateCheckoutSummary() {
+  const paymentMethod = getPaymentMethod();
+
+  document.getElementById('sum-items').innerHTML = cart.map(x => {
+    const unitPrice = getUnitPriceByMethod(x.price, paymentMethod);
+    const subtotal  = unitPrice * x.qty;
+    const safeName  = escapeHtml(x.name);
+    return `<div class="sum-row"><span>${safeName} × ${x.qty}</span><span>R$ ${fmt(subtotal)}</span></div>`;
+  }).join('');
+
+  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotal(paymentMethod));
+}
+
+function getCustomerData() {
+  const form = document.getElementById('checkout-form');
+  const data = new FormData(form);
+  return {
+    paymentMethod: String(data.get('paymentMethod') || 'avista').trim(),
+    name:    String(data.get('name')    || '').trim(),
+    phone:   String(data.get('phone')   || '').trim(),
+    email:   String(data.get('email')   || '').trim(),
+    address: String(data.get('address') || '').trim(),
+    note:    String(data.get('note')    || '').trim()
+  };
+}
+
+function validateCheckout() {
+  if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
+  const customer = getCustomerData();
+  if (!customer.name || !customer.phone || !customer.email || !customer.address) {
+    showToast('Preencha todos os campos obrigatórios.');
+    return false;
+  }
+  // Validação básica de e-mail
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+    showToast('Informe um e-mail válido.');
+    return false;
+  }
+  return true;
+}
+
+function getPaymentMethodLabel(paymentMethod) {
+  return paymentMethod === 'cartao' ? 'Cartão' : 'À vista';
+}
+
+function buildWhatsAppMessage() {
+  const customer      = getCustomerData();
+  const paymentMethod = customer.paymentMethod;
+
+  const itemsText = cart.map((item, index) => {
+    const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
+    const subtotal  = unitPrice * item.qty;
+    const sku       = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
+    return `${index + 1}. ${item.name}${sku}\nQtd: ${item.qty}\nValor unitário: R$ ${fmt(unitPrice)}\nSubtotal: R$ ${fmt(subtotal)}`;
+  }).join('\n\n');
+
+  return `Olá! Gostaria de finalizar este pedido:\n\n🛍️ *PEDIDO*\n${itemsText}\n\n💳 *FORMA DE PAGAMENTO*: ${getPaymentMethodLabel(paymentMethod)}\n💰 *TOTAL*: R$ ${fmt(getTotal(paymentMethod))}\n\n👤 *DADOS DO CLIENTE*\nNome: ${customer.name}\nTelefone: ${customer.phone}\nE-mail: ${customer.email}\nEndereço: ${customer.address}\nObservações: ${customer.note || 'Nenhuma'}`;
+}
+
 function buildCustomOrderMessage(product) {
-  return `Olá! Tenho interesse em uma peça personalizada.
+  return `Olá! Tenho interesse em uma peça personalizada.\n\n✨ *PEDIDO PERSONALIZADO*\nReferência: ${product.name}\nSKU: ${product.sku}\n\nQuero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
+}
 
-✨ *PEDIDO PERSONALIZADO*
-Referência: ${product.name}
-SKU: ${product.sku}
-
-Quero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
+function sendOrderToWhatsApp() {
+  if (!validateCheckout()) return;
+  const message = buildWhatsAppMessage();
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  setPaymentStatus('Abrindo WhatsApp...');
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function sendCustomOrderToWhatsApp(productId) {
@@ -1573,59 +1691,7 @@ function sendCustomOrderToWhatsApp(productId) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function buildCartPayload() {
-  return cart.map(item => ({
-    productId: item.id,
-    quantity: item.qty
-  }));
-}
-
-function setCheckoutLoading(isLoading) {
-  checkoutLoading = isLoading;
-  const btn = document.getElementById('checkout-btn');
-  btn.disabled = isLoading || cart.length === 0;
-  btn.textContent = isLoading ? 'Redirecionando...' : 'Ir para pagamento →';
-}
-
-async function createStripeCheckoutSession() {
-  const response = await fetch('/api/stripe/create-checkout-session', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      cart: buildCartPayload()
-    })
-  });
-
-  const data = await response.json().catch(() => ({}));
-
-  if (!response.ok) {
-    throw new Error(data.error || 'Não foi possível iniciar o checkout.');
-  }
-
-  if (!data.url) {
-    throw new Error('A Stripe não retornou a URL de pagamento.');
-  }
-
-  return data.url;
-}
-
-async function goToPayment() {
-  if (!cart.length) {
-    showToast('Seu carrinho está vazio.');
-    return;
-  }
-
-  try {
-    setCheckoutLoading(true);
-    const checkoutUrl = await createStripeCheckoutSession();
-    window.location.href = checkoutUrl;
-  } catch (error) {
-    setCheckoutLoading(false);
-    showToast(error.message || 'Erro ao iniciar pagamento.');
-  }
-}
+// ─── Eventos ───────────────────────────────────────────────
 
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
@@ -1657,7 +1723,7 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
   if (!btn) return;
 
   const id = parseInt(btn.dataset.productId, 10);
-  const p = PRODUCTS.find(x => x.id === id);
+  const p  = PRODUCTS.find(x => x.id === id);
   if (!p || p.custom) return;
 
   const existing = cart.find(x => x.id === id);
@@ -1678,7 +1744,7 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
 
-  const id = parseInt(btn.dataset.id, 10);
+  const id     = parseInt(btn.dataset.id, 10);
   const action = btn.dataset.action;
 
   if (action === 'del') {
@@ -1687,7 +1753,7 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
     const item = cart.find(x => x.id === id);
     if (item) {
       item.qty += action === 'plus' ? 1 : -1;
-      item.qty = Math.min(99, Math.max(0, item.qty));
+      item.qty  = Math.min(99, Math.max(0, item.qty));
       if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
     }
   }
@@ -1695,12 +1761,28 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   saveCart();
   refreshUI();
   renderCartBody();
+  updateCheckoutSummary();
 });
 
 document.getElementById('cart-toggle-btn').addEventListener('click', openCart);
 document.getElementById('cart-close-btn').addEventListener('click', closeCart);
 document.getElementById('cart-overlay').addEventListener('click', closeCart);
-document.getElementById('checkout-btn').addEventListener('click', goToPayment);
+
+document.getElementById('checkout-btn').addEventListener('click', () => {
+  if (!cart.length) return;
+  closeCart();
+  setPaymentStatus('');
+  document.getElementById('checkout-modal').classList.add('open');
+  updateCheckoutSummary();
+});
+
+document.getElementById('checkout-close-btn').addEventListener('click', () => {
+  document.getElementById('checkout-modal').classList.remove('open');
+});
+
+document.getElementById('checkout-modal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
 
 document.getElementById('video-close-btn').addEventListener('click', closeProductVideo);
 
@@ -1708,10 +1790,12 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
   if (e.target === this) closeProductVideo();
 });
 
+document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
+document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
+
 renderProducts();
 refreshUI();
 </script>
-
 
 </body>
 </html>
