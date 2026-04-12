@@ -1524,7 +1524,7 @@ function renderProducts() {
             p.custom
               ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
                  <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
-              : : `<div class="product-price">
+              : `<div class="product-price">
      R$ ${fmt(p.price)}
      <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão em até 6x sem juros</small>
    </div>
