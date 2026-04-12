@@ -449,7 +449,7 @@ nav{
 }
 
 .product-info{
-  padding:1.35rem 1.35rem 1.5rem;
+  padding:1.5rem 1.5rem 1.65rem;
   background:transparent;
 }
 
@@ -487,9 +487,10 @@ nav{
 
 .product-footer{
   display:flex;
-  align-items:center;
+  align-items:flex-end;
   justify-content:space-between;
   gap:1rem;
+  margin-top:1.1rem;
 }
 
 .product-price{
@@ -505,6 +506,66 @@ nav{
   color:var(--brown-light);
   font-family:'Lora',serif;
   font-weight:400;
+}
+
+.price-focus-box{
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
+  flex:1;
+}
+
+.price-main-line{
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+  flex-wrap:wrap;
+}
+
+.price-main{
+  font-family:'Playfair Display',serif;
+  font-size:2rem;
+  font-weight:700;
+  color:var(--rose-dark);
+  line-height:1;
+}
+
+.pix-chip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:.34rem .82rem;
+  border-radius:999px;
+  background:#DFF3E5;
+  color:#287A48;
+  font-size:.76rem;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  box-shadow:0 6px 14px rgba(40,122,72,.10);
+}
+
+.price-economy-badge{
+  display:inline-flex;
+  align-items:center;
+  width:fit-content;
+  padding:.42rem .88rem;
+  border-radius:999px;
+  background:rgba(169,120,125,.12);
+  color:var(--rose-dark);
+  font-size:.8rem;
+  font-weight:700;
+}
+
+.price-card-secondary{
+  font-size:.84rem;
+  line-height:1.55;
+  color:var(--brown-mid);
+}
+
+.price-card-secondary strong{
+  color:var(--rose-dark);
+  font-weight:700;
 }
 
 .add-btn,.custom-btn{
@@ -1228,7 +1289,7 @@ footer{
       <div class="field full">
         <label for="payment-method">Forma de pagamento</label>
         <select id="payment-method" name="paymentMethod" required>
-          <option value="avista">À vista</option>
+          <option value="avista">PIX</option>
           <option value="cartao">Cartão</option>
         </select>
       </div>
@@ -1403,6 +1464,11 @@ function getCardPrice(price) {
   return Number((Math.floor(base) + 0.99).toFixed(2));
 }
 
+function getCashSavings(price) {
+  const savings = getCardPrice(price) - Number(price);
+  return Number(savings.toFixed(2));
+}
+
 function getPaymentMethod() {
   const select = document.getElementById('payment-method');
   return select ? select.value : 'avista';
@@ -1524,14 +1590,21 @@ function renderProducts() {
             p.custom
               ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
                  <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
-              : `<div class="product-price">
-     R$ ${fmt(p.price)}
-     <small>ou R$ ${fmt(getCardPrice(p.price))} no cartão em até 6x sem juros</small>
-   </div>
-   <div class="product-actions">
-     ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
-     <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
-   </div>`
+              : `<div class="price-focus-box">
+                   <div class="price-main-line">
+                     <span class="price-main">R$ ${fmt(p.price)}</span>
+                     <span class="pix-chip">no PIX</span>
+                   </div>
+                   <div class="price-economy-badge">Economize R$ ${fmt(getCashSavings(p.price))}</div>
+                   <div class="price-card-secondary">
+                     No cartão: <strong>R$ ${fmt(getCardPrice(p.price))}</strong><br>
+                     em até 6x sem juros
+                   </div>
+                 </div>
+                 <div class="product-actions">
+                   ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
+                   <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
+                 </div>`
           }
         </div>
       </div>
@@ -1560,7 +1633,7 @@ function renderCartBody() {
       </div>
       <div class="ci-info">
         <p class="ci-name">${safeName}</p>
-        <p class="ci-price">R$ ${fmt(item.price)} <span style="opacity:.7">(à vista)</span></p>
+        <p class="ci-price">R$ ${fmt(item.price)} <span style="opacity:.7">(PIX)</span></p>
         <div class="ci-controls">
           <button class="qty-btn" data-action="minus" data-id="${item.id}">−</button>
           <span class="qty-n">${item.qty}</span>
@@ -1655,7 +1728,7 @@ function validateCheckout() {
 }
 
 function getPaymentMethodLabel(paymentMethod) {
-  return paymentMethod === 'cartao' ? 'Cartão' : 'À vista';
+  return paymentMethod === 'cartao' ? 'Cartão em até 6x sem juros' : 'PIX';
 }
 
 function buildWhatsAppMessage() {
