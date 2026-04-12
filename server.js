@@ -274,7 +274,10 @@ function buildSuccessPage(safeOrderId) {
 
 
 // Arquivos estáticos e catch-all
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public"), {
+  maxAge: "30d",
+  etag: true
+}));
 
 app.get("*", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "atelie-priscila-lima-profissional.html"));
