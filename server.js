@@ -274,6 +274,20 @@ function buildSuccessPage(safeOrderId) {
 
 
 // Arquivos estáticos e catch-all
+
+app.get("/robots.txt", (req, res) => {
+  res.set("Cache-Control", "public, max-age=0, must-revalidate");
+  res.type("text/plain");
+  res.sendFile(path.join(__dirname, "public", "robots.txt"));
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  res.set("Cache-Control", "public, max-age=0, must-revalidate");
+  res.type("application/xml");
+  res.sendFile(path.join(__dirname, "public", "sitemap.xml"));
+});
+
+
 app.use(express.static(path.join(__dirname, "public"), {
   maxAge: "30d",
   etag: true
