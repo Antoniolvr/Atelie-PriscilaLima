@@ -279,7 +279,7 @@ app.use(express.static(path.join(__dirname, "public"), {
   etag: true
 }));
 
-app.get("*", (_req, res) => {
+app.get("/{*splat}", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "atelie-priscila-lima-profissional.html"));
 });
 
