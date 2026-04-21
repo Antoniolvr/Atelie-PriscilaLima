@@ -1789,23 +1789,42 @@ function buildWhatsAppMessage() {
   const itemsText = cart.map((item, index) => {
     const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
     const subtotal  = unitPrice * item.qty;
-    const sku       = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
-    const freteText = selectedFrete 
-    ? `\n🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}` 
-    : `\n🚚 *FRETE*: A combinar / Retirada`;
-    
-  const totalComFrete = getTotal(paymentMethod) + (selectedFrete ? selectedFrete.price : 0);
+    const sku       = CATALOG[item.id]?.sku 
+      ? ` | SKU: ${CATALOG[item.id].sku}` 
+      : '';
 
-  // Mude a linha do total final na mensagem retornada:
-  // ...
-  // ${freteText}
-  // 💰 *TOTAL FINAL*: R$ ${fmt(totalComFrete)}
-    return `${index + 1}. ${item.name}${sku}\nQtd: ${item.qty}\nValor unitário: R$ ${fmt(unitPrice)}\nSubtotal: R$ ${fmt(subtotal)}`;
+    return `${index + 1}. ${item.name}${sku}
+Qtd: ${item.qty}
+Valor unitário: R$ ${fmt(unitPrice)}
+Subtotal: R$ ${fmt(subtotal)}`;
   }).join('\n\n');
 
-  return `Olá! Gostaria de finalizar este pedido:\n\n🛍️ *PEDIDO*\n${itemsText}\n\n💳 *FORMA DE PAGAMENTO*: ${getPaymentMethodLabel(paymentMethod)}\n💰 *TOTAL*: R$ ${fmt(getTotal(paymentMethod))}\n\n👤 *DADOS DO CLIENTE*\nNome: ${customer.name}\nTelefone: ${customer.phone}\nE-mail: ${customer.email}\nEndereço: ${customer.address}\nObservações: ${customer.note || 'Nenhuma'}`;
-}
+  const freteText = selectedFrete
+    ? `🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`
+    : `🚚 *FRETE*: A combinar`;
 
+  const totalComFrete =
+    getTotal(paymentMethod) +
+    (selectedFrete ? selectedFrete.price : 0);
+
+  return `Olá! Gostaria de finalizar este pedido:
+
+🛍️ *PEDIDO*
+${itemsText}
+
+💳 *FORMA DE PAGAMENTO*: ${getPaymentMethodLabel(paymentMethod)}
+
+${freteText}
+
+💰 *TOTAL FINAL*: R$ ${fmt(totalComFrete)}
+
+👤 *DADOS DO CLIENTE*
+Nome: ${customer.name}
+Telefone: ${customer.phone}
+E-mail: ${customer.email}
+Endereço: ${customer.address}
+Observações: ${customer.note || 'Nenhuma'}`;
+}
 function buildCustomOrderMessage(product) {
   return `Olá! Tenho interesse em uma peça personalizada.\n\n✨ *PEDIDO PERSONALIZADO*\nReferência: ${product.name}\nSKU: ${product.sku}\n\nQuero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
 }
