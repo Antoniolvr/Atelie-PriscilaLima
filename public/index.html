@@ -1850,48 +1850,40 @@ function sendCustomOrderToWhatsApp(productId) {
 let selectedFrete = null;
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
-  const cep = document.getElementById('cep-input').value;
-  const cepLimpo = cep.replace(/\D/g, '');
+  const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
   const optionsDiv = document.getElementById('frete-options');
 
-  if (cepLimpo.length !== 8) {
-    return showToast("Digite um CEP válido");
-  }
-
-  optionsDiv.innerHTML = "Calculando...";
+  if (cep.length !== 8) return showToast("Digite um CEP válido");
+  optionsDiv.innerHTML = "Calculando as melhores opções...";
 
   try {
-    const MELHOR_ENVIO_URL = "/api/frete"; // <- endpoint do seu backend
-
-    const response = await fetch(MELHOR_ENVIO_URL, {
+    const response = await fetch("/api/frete", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        cep: cepLimpo,
-        items: cart
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cep: cep, items: cart })
     });
 
-    const fretes = await response.json();
+    const fretes = await response.json(); // Já recebe o array filtrado e ordenado
 
-    if (fretes.error) {
-      optionsDiv.innerHTML = `<span style="color:red">${fretes.error}</span>`;
+    if (fretes.length === 0) {
+      optionsDiv.innerHTML = "Nenhuma opção de frete encontrada.";
       return;
     }
 
     optionsDiv.innerHTML = fretes.map((f, i) => `
-      <label style="display:block; margin-bottom:4px; cursor:pointer;">
+      <label style="display:block; margin-bottom:6px; cursor:pointer; padding: 6px; border: 1px solid #eee; border-radius: 6px;">
         <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i === 0 ? 'checked' : ''}>
-        ${f.company} ${f.name} - R$ ${fmt(f.price)} (${f.delivery_time} dias úteis)
+        <strong>${f.company} ${f.name}</strong><br>
+        <span style="font-size:0.8rem; color:var(--brown-mid)">
+          R$ ${f.price.toFixed(2).replace('.', ',')} | Prazo: ${f.delivery_time} dias úteis
+        </span>
       </label>
     `).join('');
 
     // Seleciona o primeiro automaticamente
     applyFrete(fretes[0].price, `${fretes[0].company} ${fretes[0].name}`);
 
-    // Evento de troca
+    // Adiciona evento de clique para mudar o valor caso o usuário troque
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         applyFrete(e.target.value, e.target.dataset.name);
@@ -1899,8 +1891,7 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
     });
 
   } catch (e) {
-    console.error(e);
-    optionsDiv.innerHTML = "Erro ao calcular frete.";
+    optionsDiv.innerHTML = "Erro ao carregar fretes.";
   }
 });
 
