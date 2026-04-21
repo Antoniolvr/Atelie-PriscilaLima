@@ -1831,20 +1831,21 @@ function sendCustomOrderToWhatsApp(productId) {
   let selectedFrete = null;
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
-  const cep = document.getElementById('cep-input').value;
-  const optionsDiv = document.getElementById('frete-options');
-  
-  if(cep.length < 8) return showToast("Digite um CEP válido");
-  
-  optionsDiv.innerHTML = "Calculando...";
-  
-  try {
-    // IMPORTANTE: Ajuste a URL abaixo se rodar localmente ou em produção
-    const res = await fetch('/api/frete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cepDestino: cep, cart: cart })
-    });
+ const cep = document.getElementById('cep-input').value;
+ const cepLimpo = cep.replace(/\D/g, '');
+
+if (cepLimpo.length !== 8) {
+  return showToast("Digite um CEP válido");
+}
+
+const res = await fetch('/api/frete', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    cepDestino: cepLimpo,
+    cart: cart
+  })
+});
     
     const fretes = await res.json();
     
