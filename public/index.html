@@ -5,11 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!--
-  FIX #10 — Content-Security-Policy via meta tag
-  Bloqueia scripts inline não autorizados, iframes e conexões externas não listadas.
-  Ajuste connect-src se usar API própria em outro domínio.
--->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
   script-src 'self' 'unsafe-inline';
@@ -22,7 +17,6 @@
   form-action 'self'
 ">
 
-<!-- FIX #11 — X-Frame-Options via meta (reforço; o servidor já envia o header) -->
 <meta http-equiv="X-Frame-Options" content="DENY">
 
 <title>Ateliê Priscila Lima — Crochê Artesanal</title>
@@ -940,6 +934,8 @@ footer{
 .cart-foot{
   padding:1.3rem 1.5rem;
   border-top:1px solid rgba(216,182,185,.25);
+  max-height:400px;
+  overflow-y:auto;
 }
 
 .cart-grand{
@@ -1141,6 +1137,20 @@ footer{
 
 .toast.show{ transform:translateX(-50%) translateY(0); }
 
+.loading-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes fadeUp{
   from{opacity:0;transform:translateY(22px)}
   to{opacity:1;transform:translateY(0)}
@@ -1268,19 +1278,34 @@ footer{
   </div>
   <div class="cart-body" id="cart-body"></div>
   <div class="cart-foot">
-    <div style="margin-bottom: 1rem; border-top: 1px solid rgba(216,182,185,.25); padding-top: 1rem;">
-      <label style="font-size: .85rem; color: var(--brown-mid);">Calcular Frete:</label>
-      <div style="display: flex; gap: 8px; margin-top: 4px;">
-        <input type="text" id="cep-input" placeholder="00000-000" maxlength="9" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #ccc;">
-        <button id="calc-frete-btn" style="background: var(--brown-mid); color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer;">Calcular</button>
+    <div style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--brown-mid); padding: 0.8rem; background: rgba(216,182,185,.12); border-radius: 12px;">
+      <p style="margin-bottom: 0.6rem; font-weight: 600; color: var(--brown);">📍 Calcular Frete</p>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" id="cep-input" placeholder="00000-000" maxlength="9" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid rgba(169,120,125,.3); font-size: 0.9rem;">
+        <button id="calc-frete-btn" style="background: var(--rose-dark); color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .2s;">Calcular</button>
       </div>
-      <div id="frete-options" style="margin-top: 10px; font-size: 0.85rem;"></div>
+      <div id="frete-options" style="margin-top: 10px;"></div>
+      <div id="frete-selected" style="margin-top: 8px; padding: 8px; background: #fff; border-radius: 8px; display: none;">
+        <p style="margin: 0; color: var(--rose-dark); font-weight: 600; font-size: 0.88rem;">✓ Frete selecionado:</p>
+        <p id="frete-selected-text" style="margin: 4px 0 0 0; color: var(--brown); font-size: 0.9rem;"></p>
+      </div>
     </div>
 
     <div class="cart-grand">
-      <span class="cart-grand-label">Total</span>
+      <span class="cart-grand-label">Subtotal</span>
+      <span class="cart-grand-value" id="cart-subtotal">R$ 0,00</span>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: rgba(216,182,185,.08); border-radius: 12px; margin-bottom: 1rem;">
+      <span style="font-size: 0.85rem; color: var(--brown-mid);">🚚 Frete:</span>
+      <span id="cart-frete" style="font-size: 0.95rem; font-weight: 600; color: var(--rose-dark);">A calcular</span>
+    </div>
+
+    <div class="cart-grand" style="border-top: 2px solid rgba(216,182,185,.25); padding-top: 1rem;">
+      <span class="cart-grand-label">Total Final</span>
       <span class="cart-grand-value" id="cart-total">R$ 0,00</span>
     </div>
+    
     <button id="checkout-btn" disabled>Finalizar Pedido no WhatsApp →</button>
   </div>
 </aside>
@@ -1294,6 +1319,11 @@ footer{
 
     <p class="sum-title">📋 Resumo do Pedido</p>
     <div id="sum-items"></div>
+
+    <div style="padding: 0.8rem; background: rgba(216,182,185,.12); border-radius: 12px; margin: 1rem 0; font-size: 0.88rem;">
+      <p style="margin: 0 0 0.4rem 0; color: var(--brown-mid);"><strong>CEP:</strong> <span id="modal-cep-display"></span></p>
+      <p style="margin: 0; color: var(--brown-mid);"><strong>Frete:</strong> <span id="modal-frete-display"></span></p>
+    </div>
 
     <form id="checkout-form" class="form-grid">
       <div class="field full">
@@ -1326,7 +1356,7 @@ footer{
       </div>
     </form>
 
-    <div class="sum-total"><span>Total</span><span id="sum-total-val">R$ 0,00</span></div>
+    <div class="sum-total"><span>Total Final</span><span id="sum-total-val">R$ 0,00</span></div>
 
     <div class="checkout-wrap">
       <p class="checkout-note">📲 Ao clicar abaixo, o pedido será enviado direto para o WhatsApp da loja</p>
@@ -1354,11 +1384,6 @@ footer{
 <script>
 'use strict';
 
-// ─────────────────────────────────────────────────────────
-// FIX #12 — escapeHtml: previne XSS ao inserir texto no DOM
-// Toda string de origem externa/dinâmica passa por aqui
-// antes de entrar em innerHTML.
-// ─────────────────────────────────────────────────────────
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(String(str ?? '')));
@@ -1443,7 +1468,7 @@ const PRODUCTS = [
     measure: '95cm x 22cm',
     desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados e acabamento delicado.'
   },
-   {
+  {
     id: 7,
     sku: 'CENTRO-MESA-007',
     name: 'Sousplat Marsala, Cru e Dourado',
@@ -1512,7 +1537,7 @@ const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 function getCardPrice(price) {
   const base = Number(price) * (1 + CARD_FEE_PERCENT / 100);
-  return Number((Math.floor(base) + 0.99).toFixed(2));
+  return Number((Math.floor(base * 100) + 99) / 100);
 }
 
 function getCashSavings(price) {
@@ -1529,20 +1554,26 @@ function getUnitPriceByMethod(price, paymentMethod) {
   return paymentMethod === 'cartao' ? getCardPrice(price) : Number(price);
 }
 
-function getTotal(paymentMethod = 'avista') {
+function getSubtotal(paymentMethod = 'avista') {
   return cart.reduce((sum, item) => {
     return sum + getUnitPriceByMethod(item.price, paymentMethod) * item.qty;
   }, 0);
 }
 
+function getTotalWithFrete(paymentMethod = 'avista') {
+  const subtotal = getSubtotal(paymentMethod);
+  const freteValue = selectedFrete ? selectedFrete.price : 0;
+  return subtotal + freteValue;
+}
+
 let cart = [];
 let activeFilter = 'todos';
+let selectedFrete = null;
+let selectedCep = null;
 let toastTimer = null;
 
-// FIX #13 — localStorage usado apenas para UX, preços sempre do catálogo local
 try {
   const raw = JSON.parse(localStorage.getItem('atelie_cart') || '[]');
-  // Revalida cada item contra o catálogo para evitar preço manipulado
   cart = raw
     .filter(item => item && CATALOG[item.id] && !CATALOG[item.id].custom)
     .map(item => {
@@ -1551,7 +1582,7 @@ try {
         id:    catalogItem.id,
         qty:   Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1)),
         name:  catalogItem.name,
-        price: catalogItem.price, // sempre do catálogo
+        price: catalogItem.price,
         image: catalogItem.image
       };
     });
@@ -1567,7 +1598,7 @@ function saveCart() {
 
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg; // textContent, não innerHTML — sem risco de XSS
+  t.textContent = msg;
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
@@ -1581,20 +1612,24 @@ function bumpBadge() {
 
 function setPaymentStatus(msg) {
   const el = document.getElementById('payment-status');
-  el.textContent = msg || ''; // textContent — sem risco de XSS
+  el.textContent = msg || '';
 }
 
 function refreshUI() {
   const count = cart.reduce((s, x) => s + x.qty, 0);
   document.getElementById('cart-count').textContent = count;
-  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotal('avista'));
+  document.getElementById('cart-subtotal').textContent = 'R$ ' + fmt(getSubtotal('avista'));
+  
+  if (selectedFrete) {
+    document.getElementById('cart-frete').textContent = 'R$ ' + fmt(selectedFrete.price);
+  } else {
+    document.getElementById('cart-frete').textContent = selectedCep ? 'Calculando...' : 'A calcular';
+  }
+  
+  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotalWithFrete('avista'));
   document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
 
-// ─────────────────────────────────────────────
-// FIX #12 — renderProducts usa escapeHtml em todos
-// os campos antes de inserir no innerHTML
-// ─────────────────────────────────────────────
 function renderProducts() {
   const grid = document.getElementById('products-grid');
   const list = activeFilter === 'todos'
@@ -1663,9 +1698,6 @@ function renderProducts() {
   }).join('');
 }
 
-// ─────────────────────────────────────────────
-// FIX #12 — renderCartBody também usa escapeHtml
-// ─────────────────────────────────────────────
 function renderCartBody() {
   const body = document.getElementById('cart-body');
 
@@ -1700,6 +1732,7 @@ function openCart() {
   document.getElementById('cart-sidebar').classList.add('open');
   document.getElementById('cart-overlay').classList.add('open');
   renderCartBody();
+  refreshUI();
 }
 
 function closeCart() {
@@ -1747,7 +1780,7 @@ function updateCheckoutSummary() {
     return `<div class="sum-row"><span>${safeName} × ${x.qty}</span><span>R$ ${fmt(subtotal)}</span></div>`;
   }).join('');
 
-  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotal(paymentMethod));
+  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotalWithFrete(paymentMethod));
 }
 
 function getCustomerData() {
@@ -1765,12 +1798,12 @@ function getCustomerData() {
 
 function validateCheckout() {
   if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
+  if (!selectedFrete && !selectedCep) { showToast('Selecione uma opção de frete.'); return false; }
   const customer = getCustomerData();
   if (!customer.name || !customer.phone || !customer.email || !customer.address) {
     showToast('Preencha todos os campos obrigatórios.');
     return false;
   }
-  // Validação básica de e-mail
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
     showToast('Informe um e-mail válido.');
     return false;
@@ -1799,13 +1832,18 @@ Valor unitário: R$ ${fmt(unitPrice)}
 Subtotal: R$ ${fmt(subtotal)}`;
   }).join('\n\n');
 
-  const freteText = selectedFrete
-    ? `🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`
-    : `🚚 *FRETE*: A combinar`;
+  let freteText = '';
+  if (selectedFrete) {
+    if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
+      freteText = `🚚 *FRETE*: ${selectedFrete.name}`;
+    } else {
+      freteText = `🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
+  } else {
+    freteText = `🚚 *FRETE*: A combinar`;
+  }
 
-  const totalComFrete =
-    getTotal(paymentMethod) +
-    (selectedFrete ? selectedFrete.price : 0);
+  const totalComFrete = getTotalWithFrete(paymentMethod);
 
   return `Olá! Gostaria de finalizar este pedido:
 
@@ -1825,6 +1863,7 @@ E-mail: ${customer.email}
 Endereço: ${customer.address}
 Observações: ${customer.note || 'Nenhuma'}`;
 }
+
 function buildCustomOrderMessage(product) {
   return `Olá! Tenho interesse em uma peça personalizada.\n\n✨ *PEDIDO PERSONALIZADO*\nReferência: ${product.name}\nSKU: ${product.sku}\n\nQuero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
 }
@@ -1845,18 +1884,24 @@ function sendCustomOrderToWhatsApp(productId) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-// ─── Eventos ───────────────────────────────────────────────
-
-let selectedFrete = null;
-
-// ... (mantenha o restante do seu script igual)
+function applyFrete(price, name) {
+  selectedFrete = { price: Number(price), name: name };
+  selectedCep = document.getElementById('cep-input').value;
+  
+  document.getElementById('frete-selected').style.display = 'block';
+  document.getElementById('frete-selected-text').textContent = `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
+  
+  refreshUI();
+  updateCheckoutSummary();
+}
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
   const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
   const optionsDiv = document.getElementById('frete-options');
 
-  if (cep.length !== 8) return showToast("Digite um CEP válido");
-  optionsDiv.innerHTML = "Calculando as melhores opções...";
+  if (cep.length !== 8) return showToast("Digite um CEP válido (8 dígitos)");
+  
+  optionsDiv.innerHTML = '<div style="display: flex; align-items: center; gap: 6px; color: var(--rose-dark);"><span class="loading-spinner"></span> Calculando opções de frete...</div>';
 
   try {
     const response = await fetch("/api/frete", {
@@ -1867,26 +1912,31 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
     const fretes = await response.json();
 
-    if (fretes.length === 0) {
-      optionsDiv.innerHTML = "Nenhuma opção de frete encontrada para este CEP.";
+    // Adicionar opção de cidades vizinhas
+    const allFretes = [
+      ...fretes,
+      { company: 'Ateliê', name: 'Cidades vizinhas - Valores a combinar', price: 0, delivery_time: 0 }
+    ];
+
+    if (allFretes.length === 0) {
+      optionsDiv.innerHTML = "Nenhuma opção de frete encontrada.";
       return;
     }
 
-    // Renderiza a lista limpa
-    optionsDiv.innerHTML = fretes.map((f, i) => `
-      <label style="display:block; margin-bottom:8px; cursor:pointer; padding:8px; border:1px solid #ddd; border-radius:8px;">
-        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i === 0 ? 'checked' : ''}>
-        <strong>${f.company} - ${f.name}</strong><br>
+    optionsDiv.innerHTML = allFretes.map((f, i) => `
+      <label style="display:block; margin-bottom:8px; cursor:pointer; padding:8px; border:1px solid rgba(169,120,125,.22); border-radius:8px; transition: all .2s; background: #fff;">
+        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i === 0 ? 'checked' : ''} style="cursor: pointer; margin-right: 6px;">
+        <strong style="color: var(--brown);">${f.company} - ${f.name}</strong><br>
         <span style="font-size:0.8rem; color:var(--brown-mid)">
-          R$ ${f.price.toFixed(2).replace('.', ',')} | Prazo: ${f.delivery_time} dias úteis
+          ${f.price > 0 ? `R$ ${f.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'} ${f.delivery_time > 0 ? `| Prazo: ${f.delivery_time} dias úteis` : ''}
         </span>
       </label>
     `).join('');
 
-    // Aplica o primeiro frete como padrão
-    applyFrete(fretes[0].price, `${fretes[0].company} ${fretes[0].name}`);
+    // Aplicar primeiro frete como padrão
+    applyFrete(fretes[0]?.price || 0, `${fretes[0]?.company || 'Ateliê'} ${fretes[0]?.name || 'Cidades vizinhas - Valores a combinar'}`);
 
-    // Adiciona evento de mudança
+    // Eventos de mudança
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         applyFrete(e.target.value, e.target.dataset.name);
@@ -1894,25 +1944,12 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
     });
 
   } catch (e) {
-    optionsDiv.innerHTML = "Erro ao buscar frete.";
+    console.error(e);
+    optionsDiv.innerHTML = "Erro ao buscar frete. Tente novamente.";
   }
 });
 
-// ... (mantenha o restante do seu script igual)
-
-function applyFrete(price, name) {
-  selectedFrete = { price: Number(price), name: name };
-  updateTotalsWithFrete();
-}
-
-function updateTotalsWithFrete() {
-  let subtotal = getTotal('avista'); // ou 'cartao' dependendo da aba
-  let totalFinal = subtotal + (selectedFrete ? selectedFrete.price : 0);
-  
-  document.getElementById('cart-total').textContent = 'R$ ' + fmt(totalFinal);
-  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(totalFinal);
-}
-
+// Event: Filter tabs
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
@@ -1922,6 +1959,7 @@ document.getElementById('filter-tabs').addEventListener('click', (e) => {
   renderProducts();
 });
 
+// Event: Products grid
 document.getElementById('products-grid').addEventListener('click', (e) => {
   const customBtn = e.target.closest('.custom-btn');
   if (customBtn) {
@@ -1960,6 +1998,7 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
   bumpBadge();
 });
 
+// Event: Cart body
 document.getElementById('cart-body').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -1981,17 +2020,33 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   saveCart();
   refreshUI();
   renderCartBody();
-  updateCheckoutSummary();
 });
 
+// Event: Cart toggle
 document.getElementById('cart-toggle-btn').addEventListener('click', openCart);
 document.getElementById('cart-close-btn').addEventListener('click', closeCart);
 document.getElementById('cart-overlay').addEventListener('click', closeCart);
 
+// Event: Checkout button
 document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) return;
+  if (!selectedFrete && !selectedCep) {
+    showToast('Selecione uma opção de frete antes de continuar.');
+    return;
+  }
   closeCart();
   setPaymentStatus('');
+  
+  // Preencher dados do frete no modal
+  document.getElementById('modal-cep-display').textContent = selectedCep || 'Não informado';
+  if (selectedFrete) {
+    if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
+      document.getElementById('modal-frete-display').textContent = selectedFrete.name;
+    } else {
+      document.getElementById('modal-frete-display').textContent = `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
+  }
+  
   document.getElementById('checkout-modal').classList.add('open');
   updateCheckoutSummary();
 });
@@ -2013,10 +2068,10 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
+// Initial render
 renderProducts();
 refreshUI();
 </script>
 
 </body>
 </html>
-
