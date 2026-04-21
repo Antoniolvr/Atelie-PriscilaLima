@@ -108,99 +108,48 @@ const CATALOG = {
 // ─────────────────────────────────────────────
 // FRETE (CORRIGIDO)
 // ─────────────────────────────────────────────
-app.post(
-  "/api/frete",
-  rateLimit(20),
-  requireSameOrigin,
-  async (req, res) => {
-    try {
-      const { cepDestino, cart } = req.body;
+app.post('/api/frete', async (req, res) => {
+  try {
+    const { cep, items } = req.body;
 
-      const cep = String(cepDestino || "").replace(/\D/g, "");
-      const cepOrigem = String(process.env.CEP_ORIGEM || "").replace(/\D/g, "");
+    if (!cep || cep.length !== 8) {
+      return res.status(400).json({ error: 'CEP inválido' });
+    }
 
-      if (cep.length !== 8) {
-        return res.status(400).json({ error: "CEP inválido" });
-      }
-
-      if (cepOrigem.length !== 8) {
-        return res.status(500).json({ error: "CEP de origem inválido no servidor" });
-      }
-
-      if (!cart || cart.length === 0) {
-        return res.status(400).json({ error: "Carrinho vazio" });
-      }
-
-      const products = cart.map(item => {
-        const p = CATALOG[item.id];
-        if (!p) throw new Error("Produto inválido");
-
-        return {
-          id: String(p.id),
-          width: p.width,
-          height: p.height,
-          length: p.length,
-          weight: p.weight,
-          insurance_value: p.unitPrice,
+    const response = await fetch('https://www.melhorenvio.com.br/api/v2/me/shipment/calculate', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: {
+          postal_code: "55820000" // SEU CEP DE ORIGEM
+        },
+        to: {
+          postal_code: cep
+        },
+        products: items.map(item => ({
+          id: String(item.id),
+          width: 20,
+          height: 10,
+          length: 15,
+          weight: 0.3,
+          insurance_value: item.price,
           quantity: item.qty
-        };
-      });
+        }))
+      })
+    });
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
+    const data = await response.json();
 
-      const response = await fetch(
-        "https://www.melhorenvio.com.br/api/v2/me/shipment/calculate",
-        {
-          method: "POST",
-          signal: controller.signal,
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
-            "User-Agent": "LojaCroche (contato@email.com)"
-          },
-          body: JSON.stringify({
-            from: { postal_code: cepOrigem },
-            to: { postal_code: cep },
-            products,
-            services: "1,2,3,4"
-          })
-        }
-      );
+    res.json(data);
 
-      clearTimeout(timeout);
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro API frete");
-      }
-
-      const options = data
-        .filter(o => o.price && !o.error)
-        .map(o => ({
-          id: o.id,
-          name: o.name,
-          price: Number(o.price),
-          delivery: o.delivery_time
-        }));
-
-      if (options.length === 0) {
-        return res.json([
-          {
-            id: "fallback",
-            name: "Frete padrão",
-            price: 15,
-            delivery: 7
-          }
-        ]);
-      }
-
-      res.json(options);
-
-    } catch (err) {
-      console.error("Erro frete:", err.message);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao calcular frete' });
+  }
+});
 
       // fallback seguro
       res.json([
