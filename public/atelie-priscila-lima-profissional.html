@@ -1790,6 +1790,16 @@ function buildWhatsAppMessage() {
     const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
     const subtotal  = unitPrice * item.qty;
     const sku       = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
+    const freteText = selectedFrete 
+    ? `\n🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}` 
+    : `\n🚚 *FRETE*: A combinar / Retirada`;
+    
+  const totalComFrete = getTotal(paymentMethod) + (selectedFrete ? selectedFrete.price : 0);
+
+  // Mude a linha do total final na mensagem retornada:
+  // ...
+  // ${freteText}
+  // 💰 *TOTAL FINAL*: R$ ${fmt(totalComFrete)}
     return `${index + 1}. ${item.name}${sku}\nQtd: ${item.qty}\nValor unitário: R$ ${fmt(unitPrice)}\nSubtotal: R$ ${fmt(subtotal)}`;
   }).join('\n\n');
 
@@ -1817,6 +1827,66 @@ function sendCustomOrderToWhatsApp(productId) {
 }
 
 // ─── Eventos ───────────────────────────────────────────────
+
+  let selectedFrete = null;
+
+document.getElementById('calc-frete-btn').addEventListener('click', async () => {
+  const cep = document.getElementById('cep-input').value;
+  const optionsDiv = document.getElementById('frete-options');
+  
+  if(cep.length < 8) return showToast("Digite um CEP válido");
+  
+  optionsDiv.innerHTML = "Calculando...";
+  
+  try {
+    // IMPORTANTE: Ajuste a URL abaixo se rodar localmente ou em produção
+    const res = await fetch('/api/frete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cepDestino: cep, cart: cart })
+    });
+    
+    const fretes = await res.json();
+    
+    if(fretes.error) {
+      optionsDiv.innerHTML = `<span style="color:red">${fretes.error}</span>`;
+      return;
+    }
+    
+    optionsDiv.innerHTML = fretes.map((f, i) => `
+      <label style="display:block; margin-bottom:4px; cursor:pointer;">
+        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.name}" ${i===0?'checked':''}>
+        ${f.company} ${f.name} - R$ ${fmt(f.price)} (${f.delivery_time} dias úteis)
+      </label>
+    `).join('');
+
+    // Seleciona o primeiro automaticamente
+    applyFrete(fretes[0].price, fretes[0].name);
+
+    // Adiciona evento para mudança de frete
+    document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        applyFrete(e.target.value, e.target.dataset.name);
+      });
+    });
+
+  } catch(e) {
+    optionsDiv.innerHTML = "Erro ao calcular frete.";
+  }
+});
+
+function applyFrete(price, name) {
+  selectedFrete = { price: Number(price), name: name };
+  updateTotalsWithFrete();
+}
+
+function updateTotalsWithFrete() {
+  let subtotal = getTotal('avista'); // ou 'cartao' dependendo da aba
+  let totalFinal = subtotal + (selectedFrete ? selectedFrete.price : 0);
+  
+  document.getElementById('cart-total').textContent = 'R$ ' + fmt(totalFinal);
+  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(totalFinal);
+}
 
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
