@@ -215,7 +215,7 @@ app.post("/api/frete", async (req, res) => {
     };
 
     const response = await fetch(
-      "https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate",
+      "https://https://www.melhorenvio.com.br/api/v2/me/shipment/calculate",
       {
         method: "POST",
         headers: {
