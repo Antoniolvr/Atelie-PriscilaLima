@@ -1861,24 +1861,29 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
   optionsDiv.innerHTML = "Calculando...";
 
   try {
-  const MELHOR_ENVIO_URL = process.env.MELHOR_ENVIO_URL?.trim();
+    const MELHOR_ENVIO_URL = "/api/frete"; // <- endpoint do seu backend
 
-if (!MELHOR_ENVIO_URL || !MELHOR_ENVIO_URL.startsWith("http")) {
-  throw new Error("URL do Melhor Envio inválida: " + MELHOR_ENVIO_URL);
-}
+    const response = await fetch(MELHOR_ENVIO_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        cep: cepLimpo,
+        items: cart
+      })
+    });
 
-const response = await fetch(MELHOR_ENVIO_URL, {
+    const fretes = await response.json();
 
-    const fretes = await res.json();
-
-    if(fretes.error) {
+    if (fretes.error) {
       optionsDiv.innerHTML = `<span style="color:red">${fretes.error}</span>`;
       return;
     }
 
     optionsDiv.innerHTML = fretes.map((f, i) => `
       <label style="display:block; margin-bottom:4px; cursor:pointer;">
-        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i===0?'checked':''}>
+        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i === 0 ? 'checked' : ''}>
         ${f.company} ${f.name} - R$ ${fmt(f.price)} (${f.delivery_time} dias úteis)
       </label>
     `).join('');
@@ -1886,14 +1891,15 @@ const response = await fetch(MELHOR_ENVIO_URL, {
     // Seleciona o primeiro automaticamente
     applyFrete(fretes[0].price, `${fretes[0].company} ${fretes[0].name}`);
 
-    // Adiciona evento para mudança de frete
+    // Evento de troca
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         applyFrete(e.target.value, e.target.dataset.name);
       });
     });
 
-  } catch(e) {
+  } catch (e) {
+    console.error(e);
     optionsDiv.innerHTML = "Erro ao calcular frete.";
   }
 });
