@@ -159,13 +159,86 @@ function escapeHtml(str) {
 // o servidor sempre recalcula pelo catálogo.
 // ─────────────────────────────────────────────
 const CATALOG = {
-  1: { id: 1, sku: "SOUSPLAT-001",      name: "Sousplat de Crochê",                              unitPrice: 30.00 },
-  2: { id: 2, sku: "TAPETE-OVAL-002",   name: "Tapete Oval Verde e Off White",                   unitPrice: 35.00 },
-  3: { id: 3, sku: "CENTRO-MESA-003",   name: "Centro de Mesa Redondo Verde com Dourado",        unitPrice: 25.00 },
-  4: { id: 4, sku: "SOUSPLAT-COLOR-004",name: "Sousplat Redondo Candy Colors",                   unitPrice: 25.00 },
-  5: { id: 5, sku: "CAMINHO-MESA-005",  name: "Caminho de Mesa Corações Off White com Dourado",  unitPrice: 60.00 },
-  6: { id: 6, sku: "CAMINHO-MESA-006",  name: "Caminho de Mesa Marrom com Dourado",              unitPrice: 60.00 }
+  1: { id: 1, sku: "SOUSPLAT-001",      name: "Sousplat de Crochê",                              unitPrice: 30.00, weight: 0.2, width: 20, height: 5, length: 20 },
+  2: { id: 2, sku: "TAPETE-OVAL-002",   name: "Tapete Oval Verde e Off White",                   unitPrice: 35.00, weight: 0.2, width: 20, height: 5, length: 20 },
+  3: { id: 3, sku: "CENTRO-MESA-003",   name: "Centro de Mesa Redondo Verde com Dourado",        unitPrice: 25.00, weight: 0.2, width: 20, height: 5, length: 20 },
+  4: { id: 4, sku: "SOUSPLAT-COLOR-004",name: "Sousplat Redondo Candy Colors",                   unitPrice: 25.00, weight: 0.2, width: 20, height: 5, length: 20 },
+  5: { id: 5, sku: "CAMINHO-MESA-005",  name: "Caminho de Mesa Corações Off White com Dourado",  unitPrice: 60.00, weight: 0.2, width: 20, height: 5, length: 20 },
+  6: { id: 6, sku: "CAMINHO-MESA-006",  name: "Caminho de Mesa Marrom com Dourado",              unitPrice: 60.00, weight: 0.2, width: 20, height: 5, length: 20 }
 };
+
+// ─────────────────────────────────────────────
+// ROTA DE CÁLCULO DE FRETE (MELHOR ENVIO)
+// ─────────────────────────────────────────────
+app.post("/api/frete", async (req, res) => {
+  try {
+    const { cepDestino, cart } = req.body;
+
+    if (!cepDestino || cepDestino.replace(/\D/g, '').length !== 8) {
+      return res.status(400).json({ error: "CEP de destino inválido." });
+    }
+
+    if (!cart || cart.length === 0) {
+      return res.status(400).json({ error: "Carrinho vazio." });
+    }
+
+    // Mapeia os produtos do carrinho para o formato do Melhor Envio
+    const products = cart.map(item => {
+      const catalogItem = CATALOG[item.id];
+      if (!catalogItem) throw new Error("Produto inválido.");
+      
+      return {
+        id: String(catalogItem.id),
+        width: catalogItem.width,
+        height: catalogItem.height,
+        length: catalogItem.length,
+        weight: catalogItem.weight,
+        insurance_value: catalogItem.unitPrice,
+        quantity: item.qty
+      };
+    });
+
+    const payload = {
+      from: { postal_code: process.env.CEP_ORIGEM },
+      to: { postal_code: cepDestino.replace(/\D/g, '') },
+      products: products,
+      options: { receipt: false, own_hand: false }
+    };
+
+    const response = await fetch(process.env.MELHOR_ENVIO_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
+        'User-Agent': 'AteliePriscilaLima (seuemail@gmail.com)'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Erro no Melhor Envio:", data);
+      return res.status(400).json({ error: "Erro ao calcular o frete. Verifique o CEP." });
+    }
+
+    // Filtra opções válidas (ex: PAC, SEDEX, Mini Envios) e com preço
+    const options = data.filter(transp => transp.price && !transp.error).map(transp => ({
+      id: transp.id,
+      name: transp.name,
+      price: parseFloat(transp.custom_price || transp.price),
+      delivery_time: transp.custom_delivery_time || transp.delivery_time,
+      company: transp.company.name
+    }));
+
+    res.json(options);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro interno ao processar o frete." });
+  }
+});
 
 // Em produção, substituir por banco de dados persistente
 const orders = new Map();
