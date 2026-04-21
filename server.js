@@ -77,7 +77,7 @@ app.post('/api/frete', async (req, res) => {
 
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("*", (req, res) => {
+app.get("splat", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
