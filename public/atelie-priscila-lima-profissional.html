@@ -1847,14 +1847,12 @@ function sendCustomOrderToWhatsApp(productId) {
 
 // ─── Eventos ───────────────────────────────────────────────
 
-// ─── Eventos ───────────────────────────────────────────────
-
 let selectedFrete = null;
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
   const cep = document.getElementById('cep-input').value;
   const cepLimpo = cep.replace(/\D/g, '');
-  const optionsDiv = document.getElementById('frete-options'); // Faltava declarar esta variável!
+  const optionsDiv = document.getElementById('frete-options');
 
   if (cepLimpo.length !== 8) {
     return showToast("Digite um CEP válido");
@@ -1862,7 +1860,7 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
   optionsDiv.innerHTML = "Calculando...";
 
-  try { // Faltava abrir o bloco try aqui!
+  try {
     const res = await fetch('/api/frete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1871,23 +1869,23 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
         cart: cart
       })
     });
-        
+
     const fretes = await res.json();
-        
+
     if(fretes.error) {
       optionsDiv.innerHTML = `<span style="color:red">${fretes.error}</span>`;
       return;
     }
-        
+
     optionsDiv.innerHTML = fretes.map((f, i) => `
       <label style="display:block; margin-bottom:4px; cursor:pointer;">
-        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.name}" ${i===0?'checked':''}>
+        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i===0?'checked':''}>
         ${f.company} ${f.name} - R$ ${fmt(f.price)} (${f.delivery_time} dias úteis)
       </label>
     `).join('');
 
     // Seleciona o primeiro automaticamente
-    applyFrete(fretes[0].price, fretes[0].name);
+    applyFrete(fretes[0].price, `${fretes[0].company} ${fretes[0].name}`);
 
     // Adiciona evento para mudança de frete
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
@@ -1896,13 +1894,10 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
       });
     });
 
-  } catch(e) { // Correção do erro de sintaxe principal aqui!
+  } catch(e) {
     optionsDiv.innerHTML = "Erro ao calcular frete.";
   }
-}); // Fechamento correto do eventListener
-
-function applyFrete(price, name) {
-// ... resto do código (applyFrete, updateTotalsWithFrete, etc)
+});
 
 function applyFrete(price, name) {
   selectedFrete = { price: Number(price), name: name };
@@ -2023,3 +2018,4 @@ refreshUI();
 
 </body>
 </html>
+
