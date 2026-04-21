@@ -1861,14 +1861,13 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
   optionsDiv.innerHTML = "Calculando...";
 
   try {
-    const res = await fetch('/api/frete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cepDestino: cepLimpo,
-        cart: cart
-      })
-    });
+  const MELHOR_ENVIO_URL = process.env.MELHOR_ENVIO_URL?.trim();
+
+if (!MELHOR_ENVIO_URL || !MELHOR_ENVIO_URL.startsWith("http")) {
+  throw new Error("URL do Melhor Envio inválida: " + MELHOR_ENVIO_URL);
+}
+
+const response = await fetch(MELHOR_ENVIO_URL, {
 
     const fretes = await res.json();
 
