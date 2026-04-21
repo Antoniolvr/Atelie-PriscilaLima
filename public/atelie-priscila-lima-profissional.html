@@ -1220,6 +1220,7 @@ footer{
     <div class="filter-tabs" id="filter-tabs">
       <button class="filter-btn active" data-filter="todos">Todos</button>
       <button class="filter-btn" data-filter="decoracao">Decoração</button>
+      <button class="filter-btn" data-filter="moda">Moda</button>
     </div>
   </div>
 
@@ -1448,6 +1449,32 @@ const PRODUCTS = [
   },
   {
     id: 8,
+    sku: 'PORTACOPOS-FLORAL-008',
+    name: 'Porta Copos Tulipas Vermelhas com Base Cru',
+    cat: 'decoracao',
+    price: 10.00,
+    image: '/produto8.png',
+    video: '/videos/produto8.mp4',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#F8ECEC,#F1DADA)',
+    measure: 'Aprox. 17cm x 17cm',
+    desc: 'Porta Copos artesanal com flores vermelhas e base em tom cru.'
+  },
+  {
+    id: 9,
+    sku: 'BIKINE-CROCHE-009',
+    name: 'Bikine em Crochê Vermelho Artesanal',
+    cat: 'moda',
+    price: 55.00,
+    image: '/produto9.png',
+    video: '/videos/produto9.mp4',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#F7E9EA,#EFD6D8)',
+    measure: 'Tamanho ajustável (P/M/G/GG)',
+    desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.'
+  },
+  {
+    id: 10,
     sku: 'PERSONALIZADO-008',
     name: 'Mande sua Inspiração',
     cat: 'decoracao',
@@ -1466,6 +1493,7 @@ const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc
 
 const CAT_LABELS = {
   decoracao: 'Decoração',
+  moda: 'Moda',
   bolsas: 'Bolsas',
   bebe: 'Bebê',
   inverno: 'Inverno'
