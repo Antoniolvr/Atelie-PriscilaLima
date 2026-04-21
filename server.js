@@ -124,7 +124,7 @@ app.post('/api/frete', async (req, res) => {
       },
       body: JSON.stringify({
         from: {
-          postal_code: "55820000" // SEU CEP DE ORIGEM
+          postal_code: "55820000"
         },
         to: {
           postal_code: cep
@@ -143,16 +143,9 @@ app.post('/api/frete', async (req, res) => {
 
     const data = await response.json();
 
-    res.json(data);
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erro ao calcular frete' });
-  }
-});
-
-      // fallback seguro
-      res.json([
+    // se vier vazio ou erro da API
+    if (!data || data.length === 0) {
+      return res.json([
         {
           id: "fallback",
           name: "Frete padrão",
@@ -160,7 +153,24 @@ app.post('/api/frete', async (req, res) => {
           delivery: 7
         }
       ]);
+    }
 
+    res.json(data);
+
+  } catch (err) {
+    console.error(err);
+
+    // fallback em caso de erro
+    res.json([
+      {
+        id: "fallback",
+        name: "Frete padrão",
+        price: 15,
+        delivery: 7
+      }
+    ]);
+  }
+});
 // ─────────────────────────────────────────────
 // STATIC
 // ─────────────────────────────────────────────
