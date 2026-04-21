@@ -1268,6 +1268,15 @@ footer{
   </div>
   <div class="cart-body" id="cart-body"></div>
   <div class="cart-foot">
+    <div style="margin-bottom: 1rem; border-top: 1px solid rgba(216,182,185,.25); padding-top: 1rem;">
+      <label style="font-size: .85rem; color: var(--brown-mid);">Calcular Frete:</label>
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <input type="text" id="cep-input" placeholder="00000-000" maxlength="9" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid #ccc;">
+        <button id="calc-frete-btn" style="background: var(--brown-mid); color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer;">Calcular</button>
+      </div>
+      <div id="frete-options" style="margin-top: 10px; font-size: 0.85rem;"></div>
+    </div>
+
     <div class="cart-grand">
       <span class="cart-grand-label">Total</span>
       <span class="cart-grand-value" id="cart-total">R$ 0,00</span>
