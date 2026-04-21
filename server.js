@@ -160,9 +160,6 @@ app.post('/api/frete', async (req, res) => {
           delivery: 7
         }
       ]);
-    }
-  }
-);
 
 // ─────────────────────────────────────────────
 // STATIC
