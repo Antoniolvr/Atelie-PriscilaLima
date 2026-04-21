@@ -174,19 +174,20 @@ app.post("/api/frete", async (req, res) => {
   try {
     const { cepDestino, cart } = req.body;
 
-    if (!cepDestino || cepDestino.replace(/\D/g, '').length !== 8) {
-      return res.status(400).json({ error: "CEP de destino inválido." });
+    const cepLimpo = String(cepDestino || '').replace(/\D/g, '');
+
+    if (cepLimpo.length !== 8) {
+      return res.status(400).json({ error: "CEP inválido." });
     }
 
     if (!cart || cart.length === 0) {
       return res.status(400).json({ error: "Carrinho vazio." });
     }
 
-    // Mapeia os produtos do carrinho para o formato do Melhor Envio
     const products = cart.map(item => {
       const catalogItem = CATALOG[item.id];
       if (!catalogItem) throw new Error("Produto inválido.");
-      
+
       return {
         id: String(catalogItem.id),
         width: catalogItem.width,
@@ -199,44 +200,58 @@ app.post("/api/frete", async (req, res) => {
     });
 
     const payload = {
-      from: { postal_code: process.env.CEP_ORIGEM },
-      to: { postal_code: cepDestino.replace(/\D/g, '') },
+      from: {
+        postal_code: process.env.CEP_ORIGEM.replace(/\D/g, '')
+      },
+      to: {
+        postal_code: cepLimpo
+      },
       products: products,
-      options: { receipt: false, own_hand: false }
+      services: "1,2,3,4", // 🔥 ESSENCIAL
+      options: {
+        receipt: false,
+        own_hand: false
+      }
     };
 
-    const response = await fetch(process.env.MELHOR_ENVIO_URL, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
-        'User-Agent': 'AteliePriscilaLima (seuemail@gmail.com)'
-      },
-      body: JSON.stringify(payload)
-    });
+    const response = await fetch(
+      "https://sandbox.melhorenvio.com.br/api/v2/me/shipment/calculate",
+      {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
+          "User-Agent": "AteliePriscilaLima (atelieplima@gmail.com)"
+        },
+        body: JSON.stringify(payload)
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Erro no Melhor Envio:", data);
-      return res.status(400).json({ error: "Erro ao calcular o frete. Verifique o CEP." });
+      console.error("Erro Melhor Envio:", data);
+      return res.status(400).json({
+        error: data?.message || "Erro ao calcular frete"
+      });
     }
 
-    // Filtra opções válidas (ex: PAC, SEDEX, Mini Envios) e com preço
-    const options = data.filter(transp => transp.price && !transp.error).map(transp => ({
-      id: transp.id,
-      name: transp.name,
-      price: parseFloat(transp.custom_price || transp.price),
-      delivery_time: transp.custom_delivery_time || transp.delivery_time,
-      company: transp.company.name
-    }));
+    const options = data
+      .filter(o => o.price && !o.error)
+      .map(o => ({
+        id: o.id,
+        name: o.name,
+        price: Number(o.custom_price || o.price),
+        delivery_time: o.custom_delivery_time || o.delivery_time,
+        company: o.company.name
+      }));
 
     res.json(options);
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Erro interno ao processar o frete." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erro interno no servidor" });
   }
 });
 
