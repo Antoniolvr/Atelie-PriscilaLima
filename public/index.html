@@ -1681,20 +1681,52 @@ function renderProducts() {
               ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
                  <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
               : `<div class="price-focus-box">
-                   <div class="price-main-line">
-                     <span class="price-main">R$ ${fmt(p.price)}</span>
-                     <span class="pix-chip">no PIX</span>
-                   </div>
-                   <div class="price-economy-badge">Economize R$ ${fmt(getCashSavings(p.price))}</div>
-                   <div class="price-card-secondary">
-                     No cartão: <strong>R$ ${fmt(getCardPrice(p.price))}</strong><br>
-                     em até 6x sem juros
-                   </div>
-                 </div>
-                 <div class="product-actions">
-                   ${p.video ? `<button class="video-btn" data-video-src="${safeVideo}" data-video-name="${safeName}" data-video-poster="${safeImage}">Ver vídeo</button>` : ''}
-                   <button class="add-btn" data-product-id="${p.id}" title="Adicionar ao carrinho">+</button>
-                 </div>`
+
+  <!-- PIX (ÂNCORA PRINCIPAL) -->
+  <div class="price-main-line">
+    <span class="price-main">R$ ${fmt(p.price)}</span>
+    <span class="pix-chip">PIX</span>
+  </div>
+
+  <!-- ECONOMIA -->
+  <div class="price-economy-badge">
+    💰 Economize R$ ${fmt(getCashSavings(p.price))}
+  </div>
+
+  <!-- CARTÃO (FOCO TOTAL EM PARCELA) -->
+  <div style="margin-top:.6rem">
+
+    <div style="
+      font-size:1.25rem;
+      font-weight:700;
+      color:#2e7d32;
+      line-height:1.1;
+      display:flex;
+      align-items:center;
+      gap:.4rem;
+    ">
+      💳 6x de R$ ${fmt(getInstallment(p.price))}
+    </div>
+
+    <div style="
+      font-size:.75rem;
+      color:var(--brown-mid);
+      margin-top:.2rem;
+    ">
+      sem juros no cartão
+    </div>
+
+    <div style="
+      font-size:.68rem;
+      opacity:.55;
+      margin-top:.25rem;
+    ">
+      Total no cartão: R$ ${fmt(getCardPrice(p.price))}
+    </div>
+
+  </div>
+
+</div>
           }
         </div>
       </div>
