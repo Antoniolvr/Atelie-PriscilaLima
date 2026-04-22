@@ -1548,6 +1548,10 @@ function getCashSavings(price) {
   const savings = getCardPrice(price) - Number(price);
   return Number(savings.toFixed(2));
 }
+  
+  function getInstallment(price) {
+  return getCardPrice(price) / 6;
+}
 
 function getPaymentMethod() {
   const select = document.getElementById('payment-method');
