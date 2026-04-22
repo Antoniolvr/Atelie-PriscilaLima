@@ -1638,7 +1638,7 @@ function refreshUI() {
   document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
 
-  function renderProducts() {
+function renderProducts() {
   const grid = document.getElementById('products-grid');
   const list = activeFilter === 'todos'
     ? PRODUCTS
@@ -1695,7 +1695,6 @@ function refreshUI() {
               `
               : `
                 <div class="price-focus-box">
-
                   <div class="price-main-line">
                     <span class="price-main">R$ ${fmt(p.price)}</span>
                     <span class="pix-chip">PIX</span>
@@ -1706,30 +1705,26 @@ function refreshUI() {
                   </div>
 
                   <div style="margin-top:.6rem">
-
                     <div style="font-size:1.25rem;font-weight:700;color:#2e7d32;display:flex;align-items:center;gap:.4rem;">
                       💳 6x de R$ ${fmt(getInstallment(p.price))}
                     </div>
-
                     <div style="font-size:.75rem;color:var(--brown-mid);margin-top:.2rem;">
                       sem juros no cartão
                     </div>
-
                     <div style="font-size:.68rem;opacity:.55;margin-top:.25rem;">
                       Total no cartão: R$ ${fmt(getCardPrice(p.price))}
+                    </div>
                   </div>
-
-                  </div> <button class="add-btn" data-product-id="${p.id}">+</button>
+                </div>
                 
-              ` // Fecha a template string do bloco else
-       
+                <button class="add-btn" data-product-id="${p.id}">+</button>
+              `
           }
         </div>
       </div>
     </div>`;
   }).join('');
 }
-
 
 function renderCartBody() {
   const body = document.getElementById('cart-body');
