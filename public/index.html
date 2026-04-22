@@ -1633,14 +1633,16 @@ function refreshUI() {
   document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotalWithFrete('avista'));
   document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
-function renderProducts() {
+
+  function renderProducts() {
   const grid = document.getElementById('products-grid');
   const list = activeFilter === 'todos'
     ? PRODUCTS
     : PRODUCTS.filter(p => p.cat === activeFilter);
 
   if (!list.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--brown-mid);font-family:Playfair Display,serif;font-size:1.1rem">Nenhum produto nesta categoria ainda.</div>';
+    grid.innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--brown-mid);font-family:Playfair Display,serif;font-size:1.1rem">Nenhum produto nesta categoria ainda.</div>';
     return;
   }
 
@@ -1652,78 +1654,77 @@ function renderProducts() {
     const safeCat     = escapeHtml(CAT_LABELS[p.cat] || p.cat);
     const safeColor   = escapeHtml(p.color);
     const safeImage   = escapeHtml(p.image || '');
-    const safeVideo   = escapeHtml(p.video || '');
     const safeBtnText = p.custom ? escapeHtml(p.buttonText || 'Solicitar') : '';
 
-    return 
+    return `
     <div class="product-card" style="animation-delay:${i * 0.08}s">
       <div class="product-img" style="background:${safeColor}">
         ${
           p.custom
-            ? <div class="custom-visual">
+            ? `<div class="custom-visual">
                 <div class="custom-visual-ico">✨</div>
                 <div class="custom-visual-title">Peça sob medida</div>
                 <div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div>
-               <div>
-            : <img src="${safeImage}" class="product-image" alt="${safeName}">
+               </div>`
+            : `<img src="${safeImage}" class="product-image" alt="${safeName}">`
         }
         ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
       </div>
+
       <div class="product-info">
         <p class="product-cat">${safeCat}</p>
         <h3 class="product-name">${safeName}</h3>
         ${safeMeasure ? `<p class="product-measure">Medida: ${safeMeasure}</p>` : ''}
         <p class="product-desc">${safeDesc}</p>
+
         <div class="product-footer">
           ${
             p.custom
-              ? `<div class="product-price">Sob encomenda<small>Consulte valor e prazo</small></div>
-                <button class="custom-btn" data-custom-id="${p.id}">${safeBtnText}</button>`
-: 
-<div class="price-focus-box">
+              ? `
+                <div class="product-price">
+                  Sob encomenda
+                  <small>Consulte valor e prazo</small>
+                </div>
+                <button class="custom-btn" data-custom-id="${p.id}">
+                  ${safeBtnText}
+                </button>
+              `
+              : `
+                <div class="price-focus-box">
 
-  <div class="price-main-line">
-    <span class="price-main">R$ ${fmt(p.price)}</span>
-    <span class="pix-chip">PIX</span>
-  </div>
+                  <div class="price-main-line">
+                    <span class="price-main">R$ ${fmt(p.price)}</span>
+                    <span class="pix-chip">PIX</span>
+                  </div>
 
-  <div class="price-economy-badge">
-    💰 Economize R$ ${fmt(getCashSavings(p.price))}
-  </div>
+                  <div class="price-economy-badge">
+                    💰 Economize R$ ${fmt(getCashSavings(p.price))}
+                  </div>
 
-  <div style="margin-top:.6rem">
+                  <div style="margin-top:.6rem">
 
-    <div style="
-      font-size:1.25rem;
-      font-weight:700;
-      color:#2e7d32;
-      line-height:1.1;
-      display:flex;
-      align-items:center;
-      gap:.4rem;
-    ">
-      💳 6x de R$ ${fmt(getInstallment(p.price))}
-    </div>
+                    <div style="font-size:1.25rem;font-weight:700;color:#2e7d32;display:flex;align-items:center;gap:.4rem;">
+                      💳 6x de R$ ${fmt(getInstallment(p.price))}
+                    </div>
 
-    <div style="
-      font-size:.75rem;
-      color:var(--brown-mid);
-      margin-top:.2rem;
-    ">
-      sem juros no cartão
-    </div>
+                    <div style="font-size:.75rem;color:var(--brown-mid);margin-top:.2rem;">
+                      sem juros no cartão
+                    </div>
 
-    <div style="
-      font-size:.68rem;
-      opacity:.55;
-      margin-top:.25rem;
-    ">
-      Total no cartão: R$ ${fmt(getCardPrice(p.price))}
-    </div>
+                    <div style="font-size:.68rem;opacity:.55;margin-top:.25rem;">
+                      Total no cartão: R$ ${fmt(getCardPrice(p.price))}
+                    </div>
 
-  </div>
+                  </div>
 
-</div>
+                </div>
+              `
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 
 function renderCartBody() {
