@@ -1660,12 +1660,12 @@ function renderProducts() {
       <div class="product-img" style="background:${safeColor}">
         ${
           p.custom
-            ? `<div class="custom-visual">
+            ? <div class="custom-visual">
                 <div class="custom-visual-ico">✨</div>
                 <div class="custom-visual-title">Peça sob medida</div>
                 <div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div>
-               </div>`
-            : `<img src="${safeImage}" class="product-image" alt="${safeName}">`
+               <div>
+            : <img src="${safeImage}" class="product-image" alt="${safeName}">
         }
         ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
       </div>
