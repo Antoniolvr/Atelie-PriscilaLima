@@ -1717,12 +1717,12 @@ function refreshUI() {
 
                     <div style="font-size:.68rem;opacity:.55;margin-top:.25rem;">
                       Total no cartão: R$ ${fmt(getCardPrice(p.price))}
-                    </div>
-
                   </div>
 
-                </div>
-              `
+                  </div> <button class="add-btn" data-product-id="${p.id}">+</button>
+                
+              ` // Fecha a template string do bloco else
+       
           }
         </div>
       </div>
