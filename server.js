@@ -1,4 +1,4 @@
-import express from "express";
+import  from "";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
@@ -10,6 +10,34 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const rateLimit = require('express-rate-limit');
+const csrf = require('csurf');
+const session = require('express-session');
+require('dotenv').config();
+
+// Session middleware (necessário para CSRF)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'seu-secret-aleatorio-seguro',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { 
+    secure: process.env.NODE_ENV === 'production', // true em produção
+    httpOnly: true,
+    sameSite: 'strict'
+  }
+}));
+
+// CSRF middleware
+const csrfProtection = csrf({ cookie: false });
+
+// Rate limiting para API de frete
+const freteRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minuto
+  max: 5, // máx 5 requisições por IP
+  message: 'Muitas requisições. Tente novamente mais tarde.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ─────────────────────────────────────────────────────────
 // Middlewares de Segurança
@@ -27,8 +55,8 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json({ limit: "20kb" }));
-app.use(express.urlencoded({ limit: "20kb", extended: true }));
+app.use(.json({ limit: "20kb" }));
+app.use(.urlencoded({ limit: "20kb", extended: true }));
 
 // ─────────────────────────────────────────────────────────
 // Rota de Cálculo de Frete (Melhor Envio)
@@ -150,11 +178,21 @@ app.get('/api/health', (req, res) => {
 // ─────────────────────────────────────────────────────────
 // Servir arquivos estáticos
 // ─────────────────────────────────────────────────────────
-app.use(express.static(path.join(__dirname, "public")));
+app.use(.static(path.join(__dirname, "public")));
 
 // Fallback para SPA
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+app.get('/', csrfProtection, (req, res) => {
+  // Ler o arquivo HTML
+  const fs = require('fs');
+  let html = fs.readFileSync(__dirname + '/public/index.html', 'utf-8');
+  
+  // Injetar CSRF token na meta tag
+  html = html.replace(
+    '<meta name="csrf-token" content="">',
+    `<meta name="csrf-token" content="${req.csrfToken()}">`
+  );
+  
+  res.send(html);
 });
 
 // ─────────────────────────────────────────────────────────
