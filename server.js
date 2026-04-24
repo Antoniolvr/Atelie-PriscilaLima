@@ -1,248 +1,178 @@
-// ============================================
-// SERVER.JS CORRIGIDO - PRONTO PARA USAR
-// ============================================
-// USE ESTE ARQUIVO COMO ESTÁ
-// NÃO ADICIONE NADA, NÃO TIRE NADA
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-'use strict';
-
-require('dotenv').config();
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const session = require('express-session');
-const csrf = require('csurf');
-const rateLimit = require('express-rate-limit');
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// ✅ Middleware: Parser JSON
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ─────────────────────────────────────────────────────────
+// Middlewares de Segurança
+// ─────────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("X-UA-Compatible", "IE=edge");
+  next();
+});
 
-// ✅ Middleware: Arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ✅ Middleware: Session
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'desenvolvimento-secret-trocar',
-  resave: false,
-  saveUninitialized: true,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000
-  }
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  credentials: true
 }));
 
-// ✅ Middleware: CSRF
-const csrfProtection = csrf({ cookie: false });
+app.use(express.json({ limit: "20kb" }));
+app.use(express.urlencoded({ limit: "20kb", extended: true }));
 
-// ✅ Middleware: Rate limiting
-const apiRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 5,
-  message: 'Muitas requisições. Tente novamente mais tarde.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const freteRateLimiter = rateLimit({
-  windowMs: 2 * 60 * 1000,
-  max: 3,
-  skipSuccessfulRequests: true,
-  message: 'Muitas tentativas de cálculo de frete. Tente novamente mais tarde.'
-});
-
-// ============================================
-// ROTAS
-// ============================================
-
-// 🏠 GET /
-app.get('/', csrfProtection, (req, res) => {
-  try {
-    let html = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf-8');
-    html = html.replace(
-      '<meta name="csrf-token" content="">',
-      `<meta name="csrf-token" content="${req.csrfToken()}">`
-    );
-    res.send(html);
-  } catch (error) {
-    console.error('Erro ao servir index.html:', error);
-    res.status(500).send('Erro ao carregar página');
-  }
-});
-
-// 📦 POST /api/frete
-app.post('/api/frete', csrfProtection, freteRateLimiter, async (req, res) => {
+// ─────────────────────────────────────────────────────────
+// Rota de Cálculo de Frete (Melhor Envio)
+// ─────────────────────────────────────────────────────────
+app.post('/api/frete', async (req, res) => {
   try {
     const { cep, items } = req.body;
 
-    // Validação: CEP
+    // Validação básica
     if (!cep || typeof cep !== 'string') {
-      return res.status(400).json({ error: 'CEP inválido' });
+      return res.status(400).json({ error: 'CEP inválido', code: 'INVALID_CEP' });
     }
 
-    const cepLimpo = cep.replace(/\D/g, '');
-    if (cepLimpo.length !== 8) {
-      return res.status(400).json({ error: 'CEP deve ter 8 dígitos' });
+    const cleanCep = cep.replace(/\D/g, '');
+    if (cleanCep.length !== 8) {
+      return res.status(400).json({ error: 'CEP deve conter 8 dígitos', code: 'INVALID_CEP_LENGTH' });
     }
 
-    if (cepLimpo === '00000000') {
-      return res.status(400).json({ error: 'CEP inválido' });
-    }
-
-    // Validação: Items
+    // Validação de items
     if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Carrinho vazio' });
+      return res.status(400).json({ error: 'Nenhum item no carrinho', code: 'NO_ITEMS' });
     }
 
-    // Validação: Items válidos
-    const validItems = items.filter(item => {
-      if (!item) return false;
-      if (!Number.isInteger(item.id) || item.id <= 0) return false;
-      if (!Number.isInteger(item.qty) || item.qty < 1 || item.qty > 99) return false;
-      if (typeof item.price !== 'number' || item.price < 0 || item.price > 10000) return false;
-      return true;
-    });
-
-    if (validItems.length === 0) {
-      return res.status(400).json({ error: 'Items do carrinho inválidos' });
-    }
-
-    // Calcular peso total
-    const pesoTotal = validItems.reduce((sum, item) => sum + (item.qty * 0.5), 0);
-    if (pesoTotal > 50) {
-      return res.status(400).json({ error: 'Peso total excede limite' });
-    }
-
-    // ============================================
-    // FRETES SIMULADOS (substitua por API real)
-    // ============================================
-    const fretes = [
-      {
-        company: 'Correios',
-        name: 'PAC',
-        price: 25.50,
-        delivery_time: 10
+    // Preparar payload para Melhor Envio
+    const payload = {
+      from: {
+        postal_code: process.env.STORE_CEP || "55820000"
       },
-      {
-        company: 'Correios',
-        name: 'Sedex',
-        price: 45.00,
-        delivery_time: 2
+      to: {
+        postal_code: cleanCep
       },
+      products: items.map((item, index) => ({
+        id: String(item.id || index),
+        width: 20,
+        height: 10,
+        length: 15,
+        weight: 0.3,
+        insurance_value: Number(item.price) || 0,
+        quantity: Math.max(1, parseInt(item.qty) || 1)
+      }))
+    };
+
+    // Chamar API do Melhor Envio
+    const response = await fetch(
+      'https://www.melhorenvio.com.br/api/v2/me/shipment/calculate',
       {
-        company: 'Loggi',
-        name: 'Rápido',
-        price: 35.00,
-        delivery_time: 3
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
+          'Content-Type': 'application/json',
+          'User-Agent': 'AteliePriscilaLima (email: atelieplima@gmail.com)',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
       }
-    ];
-
-    // Validar fretes
-    const fretesValidos = fretes.filter(f => 
-      f && 
-      typeof f.company === 'string' &&
-      typeof f.name === 'string' &&
-      typeof f.price === 'number' &&
-      f.price >= 0 &&
-      f.price < 5000 &&
-      f.company.length > 0 &&
-      f.company.length < 100 &&
-      f.name.length > 0 &&
-      f.name.length < 200
     );
 
-    if (fretesValidos.length === 0) {
-      return res.status(404).json({ 
-        error: 'Nenhuma opção de frete disponível para este CEP' 
+    // Verificar status da resposta
+    if (!response.ok) {
+      console.error(`Melhor Envio API error: ${response.status} ${response.statusText}`);
+      return res.status(502).json({
+        error: 'Erro ao consultar transportadoras',
+        code: 'API_ERROR'
       });
     }
 
-    res.json(fretesValidos);
+    const data = await response.json();
 
-  } catch (error) {
-    console.error('Erro em /api/frete:', error);
-    res.status(500).json({ 
-      error: 'Erro ao calcular frete. Tente novamente mais tarde.' 
+    // Verificar se é array
+    if (!Array.isArray(data)) {
+      console.warn('Unexpected Melhor Envio response format:', typeof data);
+      return res.json([]);
+    }
+
+    // Processar e formatar fretes
+    const fretesProcessados = data
+      .filter(frete => {
+        // Validar dados obrigatórios
+        if (!frete || typeof frete !== 'object') return false;
+        if (!frete.price || isNaN(parseFloat(frete.price))) return false;
+        if (!frete.company || !frete.company.name) return false;
+        return true;
+      })
+      .map(frete => {
+        const price = parseFloat(frete.price);
+        return {
+          company: String(frete.company.name).trim(),
+          name: String(frete.name || 'Envio').trim(),
+          price: Math.round(price * 100) / 100, // Garantir 2 casas decimais
+          delivery_time: parseInt(frete.delivery_time) || 0,
+          id: frete.id || Math.random().toString(36)
+        };
+      })
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 3); // Limitar a 3 melhores opções
+
+    // Log para debug
+    console.log(`[FRETE] CEP: ${cleanCep} | Opções encontradas: ${fretesProcessados.length}`);
+
+    res.json(fretesProcessados);
+
+  } catch (err) {
+    console.error('[FRETE ERROR]', err.message);
+    res.status(500).json({
+      error: 'Erro ao calcular frete',
+      code: 'INTERNAL_ERROR',
+      message: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
   }
 });
 
-// 📧 POST /api/checkout
-app.post('/api/checkout', csrfProtection, apiRateLimiter, async (req, res) => {
-  try {
-    const { items, customer, frete, paymentMethod } = req.body;
-
-    // Validações
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Carrinho vazio' });
-    }
-
-    if (!customer || !customer.name || !customer.phone || !customer.email) {
-      return res.status(400).json({ error: 'Dados do cliente inválidos' });
-    }
-
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(customer.email)) {
-      return res.status(400).json({ error: 'Email inválido' });
-    }
-
-    // Validar telefone
-    const phoneCleaned = customer.phone.replace(/\D/g, '');
-    if (phoneCleaned.length < 10) {
-      return res.status(400).json({ error: 'Telefone inválido' });
-    }
-
-    const whatsappNumber = process.env.WHATSAPP_NUMBER;
-    
-    res.json({ 
-      success: true, 
-      message: 'Pedido preparado. Redirecionando para WhatsApp...',
-      whatsappUrl: `https://wa.me/${whatsappNumber}?text=seu-pedido`
-    });
-
-  } catch (error) {
-    console.error('Erro em /api/checkout:', error);
-    res.status(500).json({ 
-      error: 'Erro ao processar pedido. Tente novamente.' 
-    });
-  }
+// ─────────────────────────────────────────────────────────
+// Health check endpoint
+// ─────────────────────────────────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ============================================
-// ERROR HANDLING
-// ============================================
+// ─────────────────────────────────────────────────────────
+// Servir arquivos estáticos
+// ─────────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, "public")));
 
-// 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Rota não encontrada' });
+// Fallback para SPA
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// 500
+// ─────────────────────────────────────────────────────────
+// Error handling middleware
+// ─────────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  console.error('Erro não tratado:', err);
-  
-  if (err.code === 'EBADCSRFTOKEN') {
-    return res.status(403).json({ error: 'Token CSRF inválido' });
-  }
-  
-  res.status(500).json({ 
-    error: 'Erro interno do servidor.' 
+  console.error('Unhandled error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    code: 'INTERNAL_SERVER_ERROR'
   });
 });
 
-// ============================================
-// INICIAR SERVIDOR
-// ============================================
-
+// ─────────────────────────────────────────────────────────
+// Iniciar servidor
+// ─────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`✅ Servidor rodando na porta ${PORT}`);
-  console.log(`📦 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔒 CSRF: ativado`);
-  console.log(`⏱️  Rate limit: ativado`);
+  console.log(`✓ Servidor rodando na porta ${PORT}`);
+  console.log(`✓ Ambiente: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`✓ Store CEP: ${process.env.STORE_CEP || '55820000'}`);
 });
