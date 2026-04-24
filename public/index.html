@@ -1922,35 +1922,40 @@ function sendCustomOrderToWhatsApp(productId) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
+// MODIFIQUE SUA FUNÇÃO applyFrete PARA FICAR ASSIM:
 function applyFrete(price, name) {
   selectedFrete = { price: Number(price), name: name };
   selectedCep = document.getElementById('cep-input').value;
   
-  // Mostra resumo
+  // Mostra o resumo do frete selecionado
   document.getElementById('frete-selected').style.display = 'block';
   document.getElementById('frete-selected-text').textContent =
     `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
 
-  // 🔥 ESCONDE A LISTA DE FRETES
+  // 🔥 ESCONDE A LISTA DE FRETES COM ANIMAÇÃO
   const lista = document.getElementById('frete-options');
-  lista.style.maxHeight = lista.scrollHeight + "px"; // força altura atual
-  setTimeout(() => {
-    lista.style.transition = "all 0.3s ease";
-    lista.style.maxHeight = "0px";
-    lista.style.opacity = "0";
-    lista.style.overflow = "hidden";
-  }, 10);
-
-  function trocarFrete() {
-  const lista = document.getElementById('frete-options');
-
-  lista.style.display = 'block';
-  lista.style.opacity = '1';
-  lista.style.maxHeight = '500px'; // ou auto
-}
+  lista.style.transition = "all 0.3s ease";
+  lista.style.maxHeight = "0px";
+  lista.style.opacity = "0";
+  lista.style.overflow = "hidden";
 
   refreshUI();
   updateCheckoutSummary();
+}
+
+// ADICIONE ESTA FUNÇÃO FORA DE QUALQUER OUTRA (Escopo Global):
+function trocarFrete() {
+  const lista = document.getElementById('frete-options');
+  const resumo = document.getElementById('frete-selected');
+
+  // Mostra a lista novamente
+  lista.style.display = 'block';
+  lista.style.opacity = '1';
+  lista.style.maxHeight = '500px'; // Altura suficiente para mostrar as opções
+  lista.style.overflow = 'visible';
+
+  // Esconde o resumo atual para o usuário escolher o novo
+  resumo.style.display = 'none';
 }
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
