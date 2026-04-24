@@ -7,15 +7,17 @@
 
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  script-src 'self' ;
+  style-src 'self' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
-  img-src 'self' data:;
-  connect-src 'self';
+  img-src 'self' data: https:;
+  connect-src 'self' https://wa.me;
   frame-ancestors 'none';
   base-uri 'self';
   form-action 'self'
 ">
+
+<meta name="csrf-token" content="">
 
 <meta http-equiv="X-Frame-Options" content="DENY">
 
@@ -1400,6 +1402,53 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+function escapeAttr(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\//g, '&#x2F;');
+}  
+
+function isValidEmail(email) {
+  if (!email || email.length > 254) return false;
+  const regex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+  if (email.includes('..')) return false;
+  if (email.startsWith('@') || email.includes('@@')) return false;
+  return regex.test(email);
+}
+
+function isValidCEP(cep) {
+  const cleaned = cep.replace(/\D/g, '');
+  if (cleaned.length !== 8) return false;
+  if (cleaned === '00000000') return false;
+  if (/^(\d)\1{7}$/.test(cleaned)) return false;
+  return true;
+}
+
+function validateFreteResponse(data) {
+  if (!Array.isArray(data)) {
+    throw new Error('Resposta inválida: esperado array');
+  }
+  return data.filter(item => {
+    if (!item || typeof item.price !== 'number' || typeof item.name !== 'string') {
+      return false;
+    }
+    if (item.price < 0 || item.price > 5000) {
+      return false;
+    }
+    if (item.name.trim().length === 0) {
+      return false;
+    }
+    if (item.name.length > 200 || (item.company && item.company.length > 100)) {
+      return false;
+    }
+    return true;
+  });
+}  
+
 const WHATSAPP_NUMBER = '5581996809206';
 const CARD_FEE_PERCENT = 8.69;
 
@@ -1835,17 +1884,38 @@ function getCustomerData() {
 }
 
 function validateCheckout() {
-  if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
-  if (!selectedFrete && !selectedCep) { showToast('Selecione uma opção de frete.'); return false; }
+  if (!cart.length) { 
+    showToast('Seu carrinho está vazio.'); 
+    return false; 
+  }
+  
+  if (!selectedFrete && !selectedCep) { 
+    showToast('Selecione uma opção de frete.'); 
+    return false; 
+  }
+  
   const customer = getCustomerData();
-  if (!customer.name || !customer.phone || !customer.email || !customer.address) {
-    showToast('Preencha todos os campos obrigatórios.');
+  
+  if (!customer.name || customer.name.length < 3) {
+    showToast('Informe um nome válido (mínimo 3 caracteres).');
     return false;
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
+  
+  if (!customer.phone || customer.phone.length < 10) {
+    showToast('Informe um telefone válido.');
+    return false;
+  }
+  
+  if (!isValidEmail(customer.email)) {
     showToast('Informe um e-mail válido.');
     return false;
   }
+  
+  if (!customer.address || customer.address.length < 10) {
+    showToast('Informe um endereço completo.');
+    return false;
+  }
+  
   return true;
 }
 
@@ -1952,56 +2022,119 @@ function applyFrete(price, name) {
 }
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
-  const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
+  const cepInput = document.getElementById('cep-input').value;
   const optionsDiv = document.getElementById('frete-options');
 
-  if (cep.length !== 8) return showToast("Digite um CEP válido (8 dígitos)");
+  // Validar CEP
+  if (!isValidCEP(cepInput)) {
+    return showToast("Digite um CEP válido (8 dígitos, ex: 50000-000)");
+  }
+  
+  const cep = cepInput.replace(/\D/g, '');
+  
+  // Verificar carrinho
+  if (!cart || cart.length === 0) {
+    return showToast("Adicione produtos ao carrinho primeiro");
+  }
   
   optionsDiv.innerHTML = '<div style="display: flex; align-items: center; gap: 6px; color: var(--rose-dark);"><span class="loading-spinner"></span> Calculando opções de frete...</div>';
 
   try {
+    // Pegar CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
     const response = await fetch("/api/frete", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ cep: cep, items: cart })
+      headers: { 
+        "Content-Type": "application/json",
+        ...(csrfToken && { "X-CSRF-Token": csrfToken })
+      },
+      body: JSON.stringify({ cep: cep, items: cart }),
+      timeout: 10000
     });
 
-    const fretes = await response.json();
+    if (!response.ok) {
+      throw new Error(`Erro ${response.status}: ${response.statusText}`);
+    }
 
-    // Adicionar opção de cidades vizinhas
-    const allFretes = [
-      ...fretes,
-      { company: 'Ateliê', name: 'Cidades vizinhas - Valores a combinar', price: 0, delivery_time: 0 }
-    ];
+    let data;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error("Resposta inválida do servidor");
+    }
 
-    if (allFretes.length === 0) {
-      optionsDiv.innerHTML = "Nenhuma opção de frete encontrada.";
+    // ✅ VALIDAR dados da API
+    const fretes = validateFreteResponse(data);
+
+    if (fretes.length === 0) {
+      optionsDiv.innerHTML = "<p style='color: var(--brown-mid)'>Nenhuma opção de frete encontrada para este CEP</p>";
       return;
     }
 
-    optionsDiv.innerHTML = allFretes.map((f, i) => `
+    // Renderizar fretes de forma segura
+    optionsDiv.innerHTML = fretes.map((f, i) => {
+      const safeName = escapeAttr(f.name);
+      const safeCompany = escapeAttr(f.company || 'Ateliê');
+      const safePrice = Number(f.price).toFixed(2);
+      const safeDeliveryTime = Number(f.delivery_time || 0);
+      
+      const displayName = `${escapeHtml(f.company || 'Ateliê')} - ${escapeHtml(f.name)}`;
+      
+      return `
+        <label style="display:block; margin-bottom:8px; cursor:pointer; padding:8px; border:1px solid rgba(169,120,125,.22); border-radius:8px; transition: all .2s; background: #fff;">
+          <input 
+            type="radio" 
+            name="freteRadio" 
+            value="${safePrice}" 
+            data-name="${safeCompany} ${safeName}"
+            ${i === 0 ? 'checked' : ''}
+            style="cursor: pointer; margin-right: 6px;"
+          >
+          <strong style="color: var(--brown);">${displayName}</strong><br>
+          <span style="font-size:0.8rem; color:var(--brown-mid)">
+            ${safePrice > 0 ? `R$ ${safePrice}` : 'Sob consulta'} 
+            ${safeDeliveryTime > 0 ? `| Prazo: ${safeDeliveryTime} dias úteis` : ''}
+          </span>
+        </label>
+      `;
+    }).join('');
+
+    // Adicionar opção de cidades vizinhas
+    optionsDiv.innerHTML += `
       <label style="display:block; margin-bottom:8px; cursor:pointer; padding:8px; border:1px solid rgba(169,120,125,.22); border-radius:8px; transition: all .2s; background: #fff;">
-        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i === 0 ? 'checked' : ''} style="cursor: pointer; margin-right: 6px;">
-        <strong style="color: var(--brown);">${f.company} - ${f.name}</strong><br>
-        <span style="font-size:0.8rem; color:var(--brown-mid)">
-          ${f.price > 0 ? `R$ ${f.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'} ${f.delivery_time > 0 ? `| Prazo: ${f.delivery_time} dias úteis` : ''}
-        </span>
+        <input 
+          type="radio" 
+          name="freteRadio" 
+          value="0" 
+          data-name="Ateliê Cidades vizinhas - Valores a combinar"
+          style="cursor: pointer; margin-right: 6px;"
+        >
+        <strong style="color: var(--brown);">Ateliê - Cidades vizinhas - Valores a combinar</strong><br>
+        <span style="font-size:0.8rem; color:var(--brown-mid)">Sob consulta</span>
       </label>
-    `).join('');
+    `;
 
     // Aplicar primeiro frete como padrão
-    applyFrete(fretes[0]?.price || 0, `${fretes[0]?.company || 'Ateliê'} ${fretes[0]?.name || 'Cidades vizinhas - Valores a combinar'}`);
+    if (fretes.length > 0) {
+      applyFrete(
+        fretes[0].price, 
+        `${escapeHtml(fretes[0].company)} ${escapeHtml(fretes[0].name)}`
+      );
+    }
 
-    // Eventos de mudança
+    // Configurar event listeners
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
-        applyFrete(e.target.value, e.target.dataset.name);
+        const price = parseFloat(e.target.value) || 0;
+        const name = e.target.dataset.name;
+        applyFrete(price, name);
       });
     });
 
-  } catch (e) {
-    console.error(e);
-    optionsDiv.innerHTML = "Erro ao buscar frete. Tente novamente.";
+  } catch (error) {
+    console.error('Erro ao calcular frete:', error);
+    optionsDiv.innerHTML = `<p style="color: var(--rose-dark); font-weight: 600;">⚠️ ${escapeHtml(error.message)}</p>`;
   }
 });
 
