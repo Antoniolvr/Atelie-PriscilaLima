@@ -1286,9 +1286,19 @@ footer{
       </div>
       <div id="frete-options" style="margin-top: 10px;"></div>
       <div id="frete-selected" style="margin-top: 8px; padding: 8px; background: #fff; border-radius: 8px; display: none;">
-        <p style="margin: 0; color: var(--rose-dark); font-weight: 600; font-size: 0.88rem;">✓ Frete selecionado:</p>
-        <p id="frete-selected-text" style="margin: 4px 0 0 0; color: var(--brown); font-size: 0.9rem;"></p>
-      </div>
+  <p style="margin: 0; color: var(--rose-dark); font-weight: 600; font-size: 0.88rem;">
+    ✓ Frete selecionado:
+  </p>
+  <p id="frete-selected-text" style="margin: 4px 0 6px 0; color: var(--brown); font-size: 0.9rem;"></p>
+  <button onclick="trocarFrete()" style="
+    background: none;
+    border: none;
+    color: var(--rose-dark);
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: underline;
+  ">Trocar frete</button>
+</div>
     </div>
 
     <div class="cart-grand">
@@ -1916,9 +1926,29 @@ function applyFrete(price, name) {
   selectedFrete = { price: Number(price), name: name };
   selectedCep = document.getElementById('cep-input').value;
   
+  // Mostra resumo
   document.getElementById('frete-selected').style.display = 'block';
-  document.getElementById('frete-selected-text').textContent = `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
-  
+  document.getElementById('frete-selected-text').textContent =
+    `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
+
+  // 🔥 ESCONDE A LISTA DE FRETES
+  const lista = document.getElementById('frete-options');
+  lista.style.maxHeight = lista.scrollHeight + "px"; // força altura atual
+  setTimeout(() => {
+    lista.style.transition = "all 0.3s ease";
+    lista.style.maxHeight = "0px";
+    lista.style.opacity = "0";
+    lista.style.overflow = "hidden";
+  }, 10);
+
+  function trocarFrete() {
+  const lista = document.getElementById('frete-options');
+
+  lista.style.display = 'block';
+  lista.style.opacity = '1';
+  lista.style.maxHeight = '500px'; // ou auto
+}
+
   refreshUI();
   updateCheckoutSummary();
 }
