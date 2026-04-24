@@ -2,7 +2,6 @@
   "name": "atelie-priscila-lima",
   "version": "2.0.0",
   "description": "E-commerce de crochê artesanal com checkout integrado e frete automático",
-  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
