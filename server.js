@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import rateLimit from 'express-rate-limit'; // Instalado via npm
 
 dotenv.config();
 
@@ -12,7 +13,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ─────────────────────────────────────────────────────────
-// Middlewares de Segurança
+// 1. CONFIGURAÇÃO DE SEGURANÇA: CATALOGO DE PREÇOS (Anti-fraude)
+// AVISO: Edite este objeto com os preços reais dos seus produtos.
+// O sistema ignorará qualquer preço enviado pelo navegador do usuário.
+// ─────────────────────────────────────────────────────────
+const CATALOGO_PRECOS = {
+  "produto_1_id": 32.99,
+  "produto_2_id": 38.99,
+  "produto_3_id": 27.99,
+  "produto_4_id": 27.99,
+  "produto_5_id": 65.99,
+  "produto_6_id": 65.99,
+  "produto_7_id": 32.99,
+  "produto_8_id": 10.99,
+  "produto_9_id": 59.99,
+  // Adicione todos os seus IDs e preços aqui...
+};
+
+// ─────────────────────────────────────────────────────────
+// 2. MIDDLEWARES DE SEGURANÇA
 // ─────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
@@ -22,56 +41,70 @@ app.use((req, res, next) => {
   next();
 });
 
+// Configuração estrita de CORS
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  origin: (origin, callback) => {
+    // Permite requisições sem origin (como postman) ou da sua URL permitida
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Acesso não autorizado pelo CORS'));
+    }
+  },
   credentials: true
 }));
+
+// Rate Limiting (Proteção contra abuso)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 50, // Limite de 50 requisições por IP
+  message: { error: 'Muitas tentativas, tente novamente mais tarde.' }
+});
 
 app.use(express.json({ limit: "20kb" }));
 app.use(express.urlencoded({ limit: "20kb", extended: true }));
 
 // ─────────────────────────────────────────────────────────
-// Rota de Cálculo de Frete (Melhor Envio)
+// Rota de Cálculo de Frete (Protegida)
 // ─────────────────────────────────────────────────────────
-app.post('/api/frete', async (req, res) => {
+app.post('/api/frete', limiter, async (req, res) => {
   try {
     const { cep, items } = req.body;
 
-    // Validação básica
     if (!cep || typeof cep !== 'string') {
-      return res.status(400).json({ error: 'CEP inválido', code: 'INVALID_CEP' });
+      return res.status(400).json({ error: 'CEP inválido' });
     }
 
     const cleanCep = cep.replace(/\D/g, '');
     if (cleanCep.length !== 8) {
-      return res.status(400).json({ error: 'CEP deve conter 8 dígitos', code: 'INVALID_CEP_LENGTH' });
+      return res.status(400).json({ error: 'CEP inválido' });
     }
 
-    // Validação de items
     if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Nenhum item no carrinho', code: 'NO_ITEMS' });
+      return res.status(400).json({ error: 'Nenhum item no carrinho' });
     }
 
-    // Preparar payload para Melhor Envio
+    // Preparar payload consultando a base segura (CATALOGO_PRECOS)
     const payload = {
-      from: {
-        postal_code: process.env.STORE_CEP || "55820000"
-      },
-      to: {
-        postal_code: cleanCep
-      },
-      products: items.map((item, index) => ({
-        id: String(item.id || index),
-        width: 20,
-        height: 10,
-        length: 15,
-        weight: 0.3,
-        insurance_value: Number(item.price) || 0,
-        quantity: Math.max(1, parseInt(item.qty) || 1)
-      }))
+      from: { postal_code: process.env.STORE_CEP || "55820000" },
+      to: { postal_code: cleanCep },
+      products: items.map((item, index) => {
+        // SEGURANÇA: Busca o preço oficial do servidor, ignora item.price do body
+        const precoOficial = CATALOGO_PRECOS[item.id] || 0;
+        
+        return {
+          id: String(item.id || index),
+          width: 20,
+          height: 10,
+          length: 15,
+          weight: 0.3,
+          insurance_value: precoOficial, 
+          quantity: Math.max(1, parseInt(item.qty) || 1)
+        };
+      })
     };
 
-    // Chamar API do Melhor Envio
     const response = await fetch(
       'https://www.melhorenvio.com.br/api/v2/me/shipment/calculate',
       {
@@ -86,93 +119,42 @@ app.post('/api/frete', async (req, res) => {
       }
     );
 
-    // Verificar status da resposta
-    if (!response.ok) {
-      console.error(`Melhor Envio API error: ${response.status} ${response.statusText}`);
-      return res.status(502).json({
-        error: 'Erro ao consultar transportadoras',
-        code: 'API_ERROR'
-      });
-    }
+    if (!response.ok) return res.status(502).json({ error: 'Erro na API de frete' });
 
     const data = await response.json();
-
-    // Verificar se é array
-    if (!Array.isArray(data)) {
-      console.warn('Unexpected Melhor Envio response format:', typeof data);
-      return res.json([]);
-    }
-
-    // Processar e formatar fretes
-    const fretesProcessados = data
-      .filter(frete => {
-        // Validar dados obrigatórios
-        if (!frete || typeof frete !== 'object') return false;
-        if (!frete.price || isNaN(parseFloat(frete.price))) return false;
-        if (!frete.company || !frete.company.name) return false;
-        return true;
-      })
-      .map(frete => {
-        const price = parseFloat(frete.price);
-        return {
-          company: String(frete.company.name).trim(),
-          name: String(frete.name || 'Envio').trim(),
-          price: Math.round(price * 100) / 100, // Garantir 2 casas decimais
-          delivery_time: parseInt(frete.delivery_time) || 0,
-          id: frete.id || Math.random().toString(36)
-        };
-      })
+    const fretesProcessados = (Array.isArray(data) ? data : [])
+      .filter(f => f && f.price && f.company)
+      .map(f => ({
+        company: String(f.company.name).trim(),
+        name: String(f.name || 'Envio').trim(),
+        price: parseFloat(f.price),
+        delivery_time: parseInt(f.delivery_time) || 0,
+        id: f.id || Math.random().toString(36)
+      }))
       .sort((a, b) => a.price - b.price)
-      .slice(0, 3); // Limitar a 3 melhores opções
-
-    // Log para debug
-    console.log(`[FRETE] CEP: ${cleanCep} | Opções encontradas: ${fretesProcessados.length}`);
+      .slice(0, 3);
 
     res.json(fretesProcessados);
 
   } catch (err) {
     console.error('[FRETE ERROR]', err.message);
-    res.status(500).json({
-      error: 'Erro ao calcular frete',
-      code: 'INTERNAL_ERROR',
-      message: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+    res.status(500).json({ error: 'Erro interno' });
   }
 });
 
-// ─────────────────────────────────────────────────────────
-// Health check endpoint
-// ─────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// ─────────────────────────────────────────────────────────
-// Servir arquivos estáticos
-// ─────────────────────────────────────────────────────────
 app.use(express.static(path.join(__dirname, "public")));
 
-// Fallback para SPA
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ─────────────────────────────────────────────────────────
-// Error handling middleware
-// ─────────────────────────────────────────────────────────
+// Middleware de Erro Global (Não expõe detalhes em produção)
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    code: 'INTERNAL_SERVER_ERROR'
-  });
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// ─────────────────────────────────────────────────────────
-// Iniciar servidor
-// ─────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`✓ Servidor rodando na porta ${PORT}`);
-  console.log(`✓ Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`✓ Store CEP: ${process.env.STORE_CEP || '55820000'}`);
 });
