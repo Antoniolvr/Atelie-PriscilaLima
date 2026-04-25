@@ -485,6 +485,7 @@ nav{
   justify-content:space-between;
   gap:1rem;
   margin-top:1.1rem;
+  flex-wrap:wrap;
 }
 
 .product-price{
@@ -571,14 +572,50 @@ nav{
   box-shadow:0 8px 18px rgba(169,120,125,.25);
 }
 
+/* 🔴 BOTÃO OTIMIZADO PARA CONVERSÃO */
 .add-btn{
-  width:42px;
-  height:42px;
-  border-radius:50%;
-  font-size:1.3rem;
+  min-width:160px;
+  height:50px;
+  border-radius:14px;
+  font-size:.95rem;
+  font-weight:700;
+  letter-spacing:.5px;
   display:flex;
   align-items:center;
   justify-content:center;
+  gap:.7rem;
+  padding:0 1.4rem;
+  font-family:'Playfair Display',serif;
+  position:relative;
+  overflow:hidden;
+  border:none;
+  text-transform:uppercase;
+  background:linear-gradient(135deg,#E74C3C 0%,#C0392B 100%);
+  box-shadow:0 10px 26px rgba(231,76,60,.28);
+}
+
+.add-btn::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);
+  transition:left .7s ease;
+}
+
+.add-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 32px rgba(231,76,60,.38);
+}
+
+.add-btn:hover::before{
+  left:100%;
+}
+
+.add-btn:active{
+  transform:translateY(-1px);
 }
 
 .custom-btn{
@@ -591,7 +628,7 @@ nav{
   white-space:nowrap;
 }
 
-.add-btn:hover,.custom-btn:hover{ transform:scale(1.05); }
+.add-btn:hover,.custom-btn:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(169,120,125,.35); }
 
 .video-btn{
   min-width:110px;
@@ -1156,6 +1193,92 @@ footer{
   to{opacity:1;transform:translateY(0)}
 }
 
+/* 🔥 PULSAÇÃO DO BOTÃO */
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 10px 26px rgba(231, 76, 60, .28), 0 0 0 0 rgba(231, 76, 60, .7);
+  }
+  50% {
+    box-shadow: 0 10px 26px rgba(231, 76, 60, .28), 0 0 0 15px rgba(231, 76, 60, 0);
+  }
+}
+
+.add-btn {
+  animation: pulse 2s infinite;
+}
+
+.add-btn:hover {
+  animation: none;
+}
+
+/* ⚡ BADGE DE URGÊNCIA */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.urgency-badge {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background: linear-gradient(135deg, #FF6B6B, #FF4444);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 50px;
+  font-size: .7rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: blink 1.5s ease-in-out infinite;
+  box-shadow: 0 4px 12px rgba(255, 68, 68, .4);
+  z-index: 10;
+  white-space: nowrap;
+}
+
+/* 🎊 CONFETE */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background: #FF6B6B;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes confetti-fall {
+  to {
+    transform: translateY(100vh) rotateZ(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti {
+  animation: confetti-fall 3s ease-in forwards;
+}
+
+/* 📊 CONTADOR FLUTUANTE */
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.8);
+  }
+}
+
+.add-counter {
+  position: absolute;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #E74C3C;
+  pointer-events: none;
+  animation: float-up 1.5s ease-out forwards;
+  font-family: 'Playfair Display', serif;
+}
+
 @media(max-width:720px){
   .nav-links{display:none}
   .cart-sidebar{width:100%}
@@ -1167,6 +1290,7 @@ footer{
   .custom-btn{min-width:118px;padding:0 .8rem;font-size:.78rem}
   .product-actions{justify-content:flex-start}
   .video-btn{min-width:100px;padding:0 .85rem;font-size:.78rem}
+  .add-btn{min-width:140px;height:46px;font-size:.88rem}
 }
 </style>
 </head>
@@ -1548,8 +1672,8 @@ const fmt = n => Number(n).toFixed(2).replace('.', ',');
 function getCardPrice(price) {
   const base = Number(price) * (1 + CARD_FEE_PERCENT / 100);
 
-  const inteiro = Math.ceil(base); // sobe para o próximo inteiro
-  const final = inteiro - 0.01;    // transforma em ,99
+  const inteiro = Math.ceil(base);
+  const final = inteiro - 0.01;
 
   return Number(final.toFixed(2));
 }
@@ -1559,7 +1683,7 @@ function getCashSavings(price) {
   return Number(savings.toFixed(2));
 }
   
-  function getInstallment(price) {
+function getInstallment(price) {
   return getCardPrice(price) / 6;
 }
 
@@ -1626,6 +1750,49 @@ function bumpBadge() {
   const b = document.getElementById('cart-count');
   b.classList.add('bump');
   setTimeout(() => b.classList.remove('bump'), 300);
+}
+
+// 🎊 CRIAR CONFETE
+function createConfetti(x, y) {
+  const confettiCount = 30;
+  
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement('div');
+    confetti.classList.add('confetti');
+    
+    // Cores variadas
+    const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6B9D'];
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Posição aleatória
+    confetti.style.left = (x + (Math.random() - 0.5) * 100) + 'px';
+    confetti.style.top = y + 'px';
+    
+    // Tamanho aleátório
+    const size = Math.random() * 8 + 5;
+    confetti.style.width = size + 'px';
+    confetti.style.height = size + 'px';
+    
+    // Delay aleatório
+    confetti.style.animationDelay = Math.random() * 0.2 + 's';
+    
+    document.body.appendChild(confetti);
+    
+    setTimeout(() => confetti.remove(), 3200);
+  }
+}
+
+// 📊 CONTADOR FLUTUANTE
+function createFloatingCounter(x, y, qty) {
+  const counter = document.createElement('div');
+  counter.classList.add('add-counter');
+  counter.textContent = `+${qty}`;
+  counter.style.left = x + 'px';
+  counter.style.top = y + 'px';
+  
+  document.body.appendChild(counter);
+  
+  setTimeout(() => counter.remove(), 1500);
 }
 
 function setPaymentStatus(msg) {
@@ -1727,7 +1894,10 @@ function renderProducts() {
                   </div>
                 </div>
                 
-                <button class="add-btn" data-product-id="${p.id}">+</button>
+                <button class="add-btn" data-product-id="${p.id}" style="position: relative;">
+                  <span class="urgency-badge">⚡ Estoque</span>
+                  🛍️ Compre agora
+                </button>
               `
           }
         </div>
@@ -1922,17 +2092,14 @@ function sendCustomOrderToWhatsApp(productId) {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-// MODIFIQUE SUA FUNÇÃO applyFrete PARA FICAR ASSIM:
 function applyFrete(price, name) {
   selectedFrete = { price: Number(price), name: name };
   selectedCep = document.getElementById('cep-input').value;
   
-  // Mostra o resumo do frete selecionado
   document.getElementById('frete-selected').style.display = 'block';
   document.getElementById('frete-selected-text').textContent =
     `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
 
-  // 🔥 ESCONDE A LISTA DE FRETES COM ANIMAÇÃO
   const lista = document.getElementById('frete-options');
   lista.style.transition = "all 0.3s ease";
   lista.style.maxHeight = "0px";
@@ -1943,18 +2110,15 @@ function applyFrete(price, name) {
   updateCheckoutSummary();
 }
 
-// ADICIONE ESTA FUNÇÃO FORA DE QUALQUER OUTRA (Escopo Global):
 function trocarFrete() {
   const lista = document.getElementById('frete-options');
   const resumo = document.getElementById('frete-selected');
 
-  // Mostra a lista novamente
   lista.style.display = 'block';
   lista.style.opacity = '1';
-  lista.style.maxHeight = '500px'; // Altura suficiente para mostrar as opções
+  lista.style.maxHeight = '500px';
   lista.style.overflow = 'visible';
 
-  // Esconde o resumo atual para o usuário escolher o novo
   resumo.style.display = 'none';
 }
 
@@ -1975,7 +2139,6 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
     const fretes = await response.json();
 
-    // Adicionar opção de cidades vizinhas
     const allFretes = [
       ...fretes,
       { company: 'Ateliê', name: 'Cidades vizinhas - Valores a combinar', price: 0, delivery_time: 0 }
@@ -1996,10 +2159,8 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
       </label>
     `).join('');
 
-    // Aplicar primeiro frete como padrão
     applyFrete(fretes[0]?.price || 0, `${fretes[0]?.company || 'Ateliê'} ${fretes[0]?.name || 'Cidades vizinhas - Valores a combinar'}`);
 
-    // Eventos de mudança
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
         applyFrete(e.target.value, e.target.dataset.name);
@@ -2012,7 +2173,6 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
   }
 });
 
-// Event: Filter tabs
 document.getElementById('filter-tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('.filter-btn');
   if (!btn) return;
@@ -2022,7 +2182,6 @@ document.getElementById('filter-tabs').addEventListener('click', (e) => {
   renderProducts();
 });
 
-// Event: Products grid
 document.getElementById('products-grid').addEventListener('click', (e) => {
   const customBtn = e.target.closest('.custom-btn');
   if (customBtn) {
@@ -2059,9 +2218,19 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
   renderCartBody();
   showToast(`${p.name} adicionado!`);
   bumpBadge();
+  
+  // 🎊 EFEITOS VISUAIS
+  const rect = btn.getBoundingClientRect();
+  const btnCenterX = rect.left + rect.width / 2;
+  const btnCenterY = rect.top + rect.height / 2;
+  
+  // Confete
+  createConfetti(btnCenterX, btnCenterY);
+  
+  // Contador flutuante
+  createFloatingCounter(btnCenterX - 15, btnCenterY - 30, existing ? 1 : 1);
 });
 
-// Event: Cart body
 document.getElementById('cart-body').addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -2085,12 +2254,10 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   renderCartBody();
 });
 
-// Event: Cart toggle
 document.getElementById('cart-toggle-btn').addEventListener('click', openCart);
 document.getElementById('cart-close-btn').addEventListener('click', closeCart);
 document.getElementById('cart-overlay').addEventListener('click', closeCart);
 
-// Event: Checkout button
 document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) return;
   if (!selectedFrete && !selectedCep) {
@@ -2100,7 +2267,6 @@ document.getElementById('checkout-btn').addEventListener('click', () => {
   closeCart();
   setPaymentStatus('');
   
-  // Preencher dados do frete no modal
   document.getElementById('modal-cep-display').textContent = selectedCep || 'Não informado';
   if (selectedFrete) {
     if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
@@ -2131,7 +2297,6 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
-// Initial render
 renderProducts();
 refreshUI();
 </script>
