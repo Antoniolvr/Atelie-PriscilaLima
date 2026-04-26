@@ -375,6 +375,15 @@ function renderProducts() {
                     </div>
                   </div>
                 </div>
+
+                <div class="product-actions">
+                  ${p.video ? `
+                    <button class="video-btn" 
+                            data-video-src="${escapeHtml(p.video)}" 
+                            data-video-name="${safeName}">
+                      🎥 Vídeo
+                    </button>
+                  ` : ''}
                 
                 <button class="add-btn" data-product-id="${p.id}" style="position: relative;">
                   🛍️ Compre agora
