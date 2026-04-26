@@ -464,28 +464,29 @@ function openCart() {
 }
 
 function closeCart() {
+  // Esconde o menu lateral e o fundo escuro
   document.getElementById('cart-sidebar').classList.remove('open');
   document.getElementById('cart-overlay').classList.remove('open');
-}
 
-function openProductVideo(videoSrc, productName, poster = '') {
-  const modal = document.getElementById('video-modal');
-  const title = document.getElementById('video-modal-title');
-  const player = document.getElementById('product-video-player');
+  // 1. Zera o campo de texto do CEP
+  document.getElementById('cep-input').value = '';
 
-  if (!videoSrc) return;
+  // 2. Apaga o frete selecionado da memória
+  selectedCep = null;
+  selectedFrete = null;
 
-  title.textContent = `Vídeo: ${productName}`;
-  player.src = videoSrc;
+  // 3. Esconde o aviso de "Frete selecionado" e limpa a lista de opções antigas
+  document.getElementById('frete-selected').style.display = 'none';
+  
+  const lista = document.getElementById('frete-options');
+  lista.innerHTML = '';
+  lista.style.maxHeight = '500px';
+  lista.style.opacity = '1';
+  lista.style.overflow = 'visible';
+  lista.style.display = 'block';
 
-  if (poster) {
-    player.setAttribute('poster', poster);
-  } else {
-    player.removeAttribute('poster');
-  }
-
-  modal.classList.add('open');
-  player.load();
+  // 4. Atualiza os textos do carrinho (o Total volta ao normal sem o frete)
+  refreshUI();
 }
 
 function closeProductVideo() {
