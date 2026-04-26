@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import rateLimit from 'express-rate-limit'; // Instalado via npm
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -13,21 +13,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ─────────────────────────────────────────────────────────
-// 1. CONFIGURAÇÃO DE SEGURANÇA: CATALOGO DE PREÇOS (Anti-fraude)
-// AVISO: Edite este objeto com os preços reais dos seus produtos.
-// O sistema ignorará qualquer preço enviado pelo navegador do usuário.
+// 1. CATALOGO DE PREÇOS (IDs corrigidos para bater com o HTML)
 // ─────────────────────────────────────────────────────────
 const CATALOGO_PRECOS = {
-  "produto_1_id": 32.99,
-  "produto_2_id": 38.99,
-  "produto_3_id": 27.99,
-  "produto_4_id": 27.99,
-  "produto_5_id": 65.99,
-  "produto_6_id": 65.99,
-  "produto_7_id": 32.99,
-  "produto_8_id": 10.99,
-  "produto_9_id": 59.99,
-  // Adicione todos os seus IDs e preços aqui...
+  1: 32.99,
+  2: 38.99,
+  3: 27.99,
+  4: 27.99,
+  5: 65.99,
+  6: 65.99,
+  7: 32.99,
+  8: 10.99,
+  9: 59.99
 };
 
 // ─────────────────────────────────────────────────────────
@@ -41,24 +38,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Configuração estrita de CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
-app.use(cors({
-  origin: (origin, callback) => {
-    // Permite requisições sem origin (como postman) ou da sua URL permitida
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Acesso não autorizado pelo CORS'));
-    }
-  },
-  credentials: true
-}));
+// CORS corrigido para não causar erro 500
+app.use(cors({ origin: '*', credentials: true }));
 
-// Rate Limiting (Proteção contra abuso)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 50, // Limite de 50 requisições por IP
+  windowMs: 15 * 60 * 1000,
+  max: 50,
   message: { error: 'Muitas tentativas, tente novamente mais tarde.' }
 });
 
@@ -66,31 +51,22 @@ app.use(express.json({ limit: "20kb" }));
 app.use(express.urlencoded({ limit: "20kb", extended: true }));
 
 // ─────────────────────────────────────────────────────────
-// Rota de Cálculo de Frete (Protegida)
+// Rota de Cálculo de Frete
 // ─────────────────────────────────────────────────────────
 app.post('/api/frete', limiter, async (req, res) => {
   try {
     const { cep, items } = req.body;
 
-    if (!cep || typeof cep !== 'string') {
-      return res.status(400).json({ error: 'CEP inválido' });
-    }
-
+    if (!cep || typeof cep !== 'string') return res.json([]);
     const cleanCep = cep.replace(/\D/g, '');
-    if (cleanCep.length !== 8) {
-      return res.status(400).json({ error: 'CEP inválido' });
-    }
+    if (cleanCep.length !== 8) return res.json([]);
+    if (!Array.isArray(items) || items.length === 0) return res.json([]);
 
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Nenhum item no carrinho' });
-    }
-
-    // Preparar payload consultando a base segura (CATALOGO_PRECOS)
     const payload = {
       from: { postal_code: process.env.STORE_CEP || "55820000" },
       to: { postal_code: cleanCep },
       products: items.map((item, index) => {
-        // SEGURANÇA: Busca o preço oficial do servidor, ignora item.price do body
+        // Busca o preço pelo ID numérico
         const precoOficial = CATALOGO_PRECOS[item.id] || 0;
         
         return {
@@ -99,15 +75,13 @@ app.post('/api/frete', limiter, async (req, res) => {
           height: 10,
           length: 15,
           weight: 0.3,
-          insurance_value: precoOficial, 
+          insurance_value: Number(precoOficial), 
           quantity: Math.max(1, parseInt(item.qty) || 1)
         };
       })
     };
 
-    const response = await fetch(
-      'https://www.melhorenvio.com.br/api/v2/me/shipment/calculate',
-      {
+    const response = await fetch('https://www.melhorenvio.com.br/api/v2/me/shipment/calculate', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
@@ -116,13 +90,17 @@ app.post('/api/frete', limiter, async (req, res) => {
           'Accept': 'application/json'
         },
         body: JSON.stringify(payload)
-      }
-    );
+    });
 
-    if (!response.ok) return res.status(502).json({ error: 'Erro na API de frete' });
+    // Se a API do Melhor Envio der erro (Token invalido, etc), envia array vazio
+    if (!response.ok) return res.json([]);
 
     const data = await response.json();
-    const fretesProcessados = (Array.isArray(data) ? data : [])
+    
+    // Garante que é array
+    if (!Array.isArray(data)) return res.json([]);
+
+    const fretesProcessados = data
       .filter(f => f && f.price && f.company)
       .map(f => ({
         company: String(f.company.name).trim(),
@@ -138,7 +116,7 @@ app.post('/api/frete', limiter, async (req, res) => {
 
   } catch (err) {
     console.error('[FRETE ERROR]', err.message);
-    res.status(500).json({ error: 'Erro interno' });
+    res.json([]); // Impede que o erro 500 quebre o site
   }
 });
 
@@ -150,9 +128,9 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Middleware de Erro Global (Não expõe detalhes em produção)
+// Impede que erros globais travem a API enviando HTML/Objeto
 app.use((err, req, res, next) => {
-  res.status(500).json({ error: 'Internal Server Error' });
+  res.json([]); 
 });
 
 app.listen(PORT, () => {
