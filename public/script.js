@@ -784,7 +784,11 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
-document.getElementById('btn-trocar-frete').addEventListener('click', trocarFrete);
+// Trava de segurança: Só tenta adicionar o evento se o botão existir no HTML
+const btnTrocarFrete = document.getElementById('btn-trocar-frete');
+if (btnTrocarFrete) {
+  btnTrocarFrete.addEventListener('click', trocarFrete);
+}
 
 renderProducts();
 refreshUI();
