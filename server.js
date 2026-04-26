@@ -39,7 +39,7 @@ app.use((req, res, next) => {
 });
 
 // CORS corrigido para não causar erro 500
-app.use(cors({ origin: '*', credentials: true }));
+app.use(cors({ origin: 'https://atelie-priscilalima.onrender.com', credentials: true }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
