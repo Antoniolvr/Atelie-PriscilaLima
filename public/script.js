@@ -784,5 +784,7 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
+document.getElementById('btn-trocar-frete').addEventListener('click', trocarFrete);
+
 renderProducts();
 refreshUI();
