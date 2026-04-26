@@ -7,8 +7,8 @@
 
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
-  script-src 'self' 'unsafe-inline';
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  script-src 'self';
+  style-src 'self' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
   connect-src 'self';
@@ -2138,6 +2138,12 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
     const fretes = await response.json();
 
+    // 🔒 PROTEÇÃO: Se a resposta não for uma lista (array), exibe o erro e interrompe para não travar!
+    if (!Array.isArray(fretes)) {
+      optionsDiv.innerHTML = "Não foi possível calcular o frete para este CEP (Erro interno).";
+      return;
+    }
+
     const allFretes = [
       ...fretes,
       { company: 'Ateliê', name: 'Cidades vizinhas - Valores a combinar', price: 0, delivery_time: 0 }
@@ -2168,7 +2174,7 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
   } catch (e) {
     console.error(e);
-    optionsDiv.innerHTML = "Erro ao buscar frete. Tente novamente.";
+    optionsDiv.innerHTML = "Erro de conexão ao buscar frete.";
   }
 });
 
