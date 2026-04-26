@@ -299,6 +299,10 @@ function refreshUI() {
 
 function renderProducts() {
   const grid = document.getElementById('products-grid');
+  
+  // Trava de segurança para garantir que a grade está ativa
+  grid.style.display = 'grid';
+  
   const list = activeFilter === 'todos'
     ? PRODUCTS
     : PRODUCTS.filter(p => p.cat === activeFilter);
@@ -320,7 +324,7 @@ function renderProducts() {
     const safeBtnText = p.custom ? escapeHtml(p.buttonText || 'Solicitar') : '';
 
     return `
-    <div class="product-card" style="animation-delay:${i * 0.08}s">
+    <div class="product-card" style="animation-delay:${i * 0.08}s; display: flex; flex-direction: column;">
       <div class="product-img" style="background:${safeColor}">
         ${
           p.custom
@@ -334,13 +338,13 @@ function renderProducts() {
         ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
       </div>
 
-      <div class="product-info">
+      <div class="product-info" style="display: flex; flex-direction: column; flex: 1;">
         <p class="product-cat">${safeCat}</p>
         <h3 class="product-name">${safeName}</h3>
         ${safeMeasure ? `<p class="product-measure">Medida: ${safeMeasure}</p>` : ''}
         <p class="product-desc">${safeDesc}</p>
 
-        <div class="product-footer">
+        <div class="product-footer" style="flex-wrap: wrap; margin-top: auto; display: flex; gap: 1rem; justify-content: space-between;">
           ${
             p.custom
               ? `
@@ -353,7 +357,7 @@ function renderProducts() {
                 </button>
               `
               : `
-                <div class="price-focus-box">
+                <div class="price-focus-box" style="flex: 1; min-width: 100%;">
                   <div class="price-main-line">
                     <span class="price-main">R$ ${fmt(p.price)}</span>
                     <span class="pix-chip">PIX</span>
@@ -375,8 +379,8 @@ function renderProducts() {
                     </div>
                   </div>
                 </div>
-
-                <div class="product-actions">
+                
+                <div class="product-actions" style="display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; margin-top: 0.5rem;">
                   ${p.video ? `
                     <button class="video-btn" 
                             data-video-src="${escapeHtml(p.video)}" 
@@ -384,10 +388,11 @@ function renderProducts() {
                       🎥 Vídeo
                     </button>
                   ` : ''}
-                
-                <button class="add-btn" data-product-id="${p.id}" style="position: relative;">
-                  🛍️ Compre agora
-                </button>
+                  
+                  <button class="add-btn" data-product-id="${p.id}" style="position: relative; flex: 1;">
+                    🛍️ Compre agora
+                  </button>
+                </div>
               `
           }
         </div>
