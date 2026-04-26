@@ -499,6 +499,34 @@ function closeProductVideo() {
   modal.classList.remove('open');
 }
 
+function openProductVideo(src, name, poster) {
+  const modal = document.getElementById('video-modal');
+  const player = document.getElementById('product-video-player');
+
+  // 1. Define o caminho do vídeo no player
+  if (src) {
+    player.src = src;
+  }
+
+  // 2. Se houver uma imagem de capa (poster), adiciona, senão remove
+  if (poster && poster !== 'undefined') {
+    player.poster = poster;
+  } else {
+    player.removeAttribute('poster');
+  }
+
+  // Opcional: Se você tiver um título no modal do HTML, descomente a linha abaixo e garanta que tem um elemento com id "video-modal-title"
+  // document.getElementById('video-modal-title').textContent = name;
+
+  // 3. Abre o modal
+  modal.classList.add('open');
+
+  // 4. Dá o play no vídeo automaticamente (se o navegador permitir)
+  player.play().catch(error => {
+    console.log("O autoplay foi bloqueado pelo navegador, o usuário precisa dar play manualmente.", error);
+  });
+}
+
 function updateCheckoutSummary() {
   const paymentMethod = getPaymentMethod();
 
