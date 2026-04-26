@@ -124,7 +124,32 @@ const PRODUCTS = [
     desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.'
   },
   {
-    id: 10,
+  id: 10,
+  sku: 'CENTRO-MESA-FLORAL-011',
+  name: 'Centro de Mesa Tulipas Rosa com Base Cru',
+  cat: 'decoracao',
+  price: 40.00,
+  image: '/produto10.png',
+  video: '/videos/produto10.mp4',
+  badge: 'Novo',
+  color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
+  measure: 'Aprox. 40cm x 40cm',
+  desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.'
+},
+{
+  id: 11,
+  sku: 'CHAVEIRO-CORACAO-012',
+  name: 'Chaveiro Coração Vermelho em Crochê',
+  cat: 'decoracao',
+  price: 4.00,
+  image: '/produto11.png',
+  badge: 'Fofo',
+  color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
+  measure: 'Aprox. 5cm x 6cm',
+  desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.'
+},
+  {
+    id: 12,
     sku: 'PERSONALIZADO-008',
     name: 'Mande sua Inspiração',
     cat: 'decoracao',
