@@ -25,7 +25,9 @@ const CATALOGO_PRODUTOS = {
   6: { price: 65.99, weight: 0.60 },
   7: { price: 32.99, weight: 0.175 },
   8: { price: 10.99, weight: 0.036 }, // Ex: 100g
-  9: { price: 59.99, weight: 0.083 }
+  9: { price: 59.99, weight: 0.083 },
+  10: { price: 40.00, weight: 0.186 },
+  11: { price: 4.00, weight: 0.08 }
 };
 
 // ─────────────────────────────────────────────────────────
