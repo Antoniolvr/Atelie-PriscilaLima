@@ -808,7 +808,11 @@ document.getElementById('checkout-btn').addEventListener('click', () => {
     showToast('Selecione uma opção de frete antes de continuar.');
     return;
   }
-  closeCart();
+  
+  // CORREÇÃO: Apenas esconde visualmente o carrinho, sem apagar os dados da memória
+  document.getElementById('cart-sidebar').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+  
   setPaymentStatus('');
   
   document.getElementById('modal-cep-display').textContent = selectedCep || 'Não informado';
