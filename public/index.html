@@ -200,27 +200,23 @@
         </select>
       </div>
 
-      <div class="field">
-        <label for="customer-name">Nome completo</label>
+      <div class="field full">
+        <label for="customer-name">Nome ou Apelido</label>
         <input id="customer-name" name="name" required maxlength="120" autocomplete="name">
       </div>
-      <div class="field">
-        <label for="customer-phone">Telefone</label>
-        <input id="customer-phone" name="phone" required maxlength="30" autocomplete="tel">
-      </div>
-      <div class="field full">
-        <label for="customer-email">E-mail</label>
-        <input id="customer-email" type="email" name="email" required maxlength="120" autocomplete="email">
-      </div>
-      <div class="field full">
-        <label for="customer-address">Endereço de entrega</label>
-        <textarea id="customer-address" name="address" required maxlength="300"></textarea>
-      </div>
+      
       <div class="field full">
         <label for="customer-note">Observações</label>
         <textarea id="customer-note" name="note" placeholder="Opcional" maxlength="500"></textarea>
       </div>
-    </form>
+
+      <div class="field full" style="display: flex; align-items: start; gap: 8px; margin-top: 10px;">
+        <input type="checkbox" id="lgpd-consent" name="lgpdConsent" required style="width: auto; margin-top: 4px; cursor: pointer;">
+        <label for="lgpd-consent" style="font-size: 0.85rem; color: var(--brown-mid); font-weight: normal; line-height: 1.4; cursor: pointer;">
+          Concordo em enviar os dados básicos deste pedido via WhatsApp para o Ateliê Priscila Lima.
+        </label>
+      </div>
+      </form>
 
     <div class="sum-total"><span>Total Final</span><span id="sum-total-val">R$ 0,00</span></div>
 
