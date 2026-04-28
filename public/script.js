@@ -124,30 +124,30 @@ const PRODUCTS = [
     desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.'
   },
   {
-    id: 10,
-    sku: 'CENTRO-MESA-FLORAL-011',
-    name: 'Centro de Mesa Tulipas Rosa com Base Cru',
-    cat: 'decoracao',
-    price: 40.00,
-    image: '/imagens/produto10.png',
-    video: '/videos/produto10.mp4',
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
-    measure: 'Aprox. 40cm x 40cm',
-    desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.'
-  },
-  {
-    id: 11,
-    sku: 'CHAVEIRO-CORACAO-012',
-    name: 'Chaveiro Coração Vermelho em Crochê',
-    cat: 'decoracao',
-    price: 4.00,
-    image: '/imagens/produto11.png',
-    badge: 'Fofo',
-    color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
-    measure: 'Aprox. 5cm x 6cm',
-    desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.'
-  },
+  id: 10,
+  sku: 'CENTRO-MESA-FLORAL-011',
+  name: 'Centro de Mesa Tulipas Rosa com Base Cru',
+  cat: 'decoracao',
+  price: 40.00,
+  image: '/imagens/produto10.png',
+  video: '/videos/produto10.mp4',
+  badge: 'Novo',
+  color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
+  measure: 'Aprox. 40cm x 40cm',
+  desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.'
+},
+{
+  id: 11,
+  sku: 'CHAVEIRO-CORACAO-012',
+  name: 'Chaveiro Coração Vermelho em Crochê',
+  cat: 'decoracao',
+  price: 4.00,
+  image: '/imagens/produto11.png',
+  badge: 'Fofo',
+  color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
+  measure: 'Aprox. 5cm x 6cm',
+  desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.'
+},
   {
     id: 12,
     sku: 'PERSONALIZADO-008',
@@ -164,10 +164,7 @@ const PRODUCTS = [
   }
 ];
 
-// CORREÇÃO: CATALOG exclui produtos customizados (price: null) para evitar NaN no carrinho
-const CATALOG = PRODUCTS
-  .filter(p => !p.custom)
-  .reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
+const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
 
 const CAT_LABELS = {
   decoracao: 'Decoração',
@@ -180,16 +177,19 @@ const CAT_LABELS = {
 const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 function getCardPrice(price) {
-  const base   = Number(price) * (1 + CARD_FEE_PERCENT / 100);
+  const base = Number(price) * (1 + CARD_FEE_PERCENT / 100);
+
   const inteiro = Math.ceil(base);
-  const final   = inteiro - 0.01;
+  const final = inteiro - 0.01;
+
   return Number(final.toFixed(2));
 }
 
 function getCashSavings(price) {
-  return Number((getCardPrice(price) - Number(price)).toFixed(2));
+  const savings = getCardPrice(price) - Number(price);
+  return Number(savings.toFixed(2));
 }
-
+  
 function getInstallment(price) {
   return getCardPrice(price) / 6;
 }
@@ -210,7 +210,9 @@ function getSubtotal(paymentMethod = 'avista') {
 }
 
 function getTotalWithFrete(paymentMethod = 'avista') {
-  return getSubtotal(paymentMethod) + (selectedFrete ? selectedFrete.price : 0);
+  const subtotal = getSubtotal(paymentMethod);
+  const freteValue = selectedFrete ? selectedFrete.price : 0;
+  return subtotal + freteValue;
 }
 
 let cart = [];
@@ -219,35 +221,27 @@ let selectedFrete = null;
 let selectedCep = null;
 let toastTimer = null;
 
-// CORREÇÃO: localStorage com validade de 24 horas
-const CART_TTL_MS = 24 * 60 * 60 * 1000;
 try {
-  const raw     = JSON.parse(localStorage.getItem('atelie_cart') || '{}');
-  const payload = Array.isArray(raw) ? { cart: raw, ts: 0 } : raw;
-
-  const expirado = !payload.ts || (Date.now() - payload.ts) > CART_TTL_MS;
-
-  if (!expirado && Array.isArray(payload.cart)) {
-    cart = payload.cart
-      .filter(item => item && CATALOG[item.id])
-      .map(item => {
-        const c = CATALOG[item.id];
-        return {
-          id:    c.id,
-          qty:   Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1)),
-          name:  c.name,
-          price: c.price,
-          image: c.image
-        };
-      });
-  }
+  const raw = JSON.parse(localStorage.getItem('atelie_cart') || '[]');
+  cart = raw
+    .filter(item => item && CATALOG[item.id] && !CATALOG[item.id].custom)
+    .map(item => {
+      const catalogItem = CATALOG[item.id];
+      return {
+        id:    catalogItem.id,
+        qty:   Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1)),
+        name:  catalogItem.name,
+        price: catalogItem.price,
+        image: catalogItem.image
+      };
+    });
 } catch (e) {
   cart = [];
 }
 
 function saveCart() {
   try {
-    localStorage.setItem('atelie_cart', JSON.stringify({ cart, ts: Date.now() }));
+    localStorage.setItem('atelie_cart', JSON.stringify(cart));
   } catch (e) {}
 }
 
@@ -265,62 +259,82 @@ function bumpBadge() {
   setTimeout(() => b.classList.remove('bump'), 300);
 }
 
+// 🎊 CRIAR CONFETE
 function createConfetti(x, y) {
-  const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6B9D'];
-  for (let i = 0; i < 30; i++) {
-    const el = document.createElement('div');
-    el.classList.add('confetti');
-    el.style.background = colors[Math.floor(Math.random() * colors.length)];
-    el.style.left        = (x + (Math.random() - 0.5) * 100) + 'px';
-    el.style.top         = y + 'px';
-    const size           = Math.random() * 8 + 5;
-    el.style.width       = size + 'px';
-    el.style.height      = size + 'px';
-    el.style.animationDelay = Math.random() * 0.2 + 's';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 3200);
+  const confettiCount = 30;
+  
+  for (let i = 0; i < confettiCount; i++) {
+    const confetti = document.createElement('div');
+    confetti.classList.add('confetti');
+    
+    // Cores variadas
+    const colors = ['#FF6B6B', '#FFD93D', '#6BCB77', '#4D96FF', '#FF6B9D'];
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    
+    // Posição aleatória
+    confetti.style.left = (x + (Math.random() - 0.5) * 100) + 'px';
+    confetti.style.top = y + 'px';
+    
+    // Tamanho aleátório
+    const size = Math.random() * 8 + 5;
+    confetti.style.width = size + 'px';
+    confetti.style.height = size + 'px';
+    
+    // Delay aleatório
+    confetti.style.animationDelay = Math.random() * 0.2 + 's';
+    
+    document.body.appendChild(confetti);
+    
+    setTimeout(() => confetti.remove(), 3200);
   }
 }
 
+// 📊 CONTADOR FLUTUANTE
 function createFloatingCounter(x, y, qty) {
-  const el    = document.createElement('div');
-  el.classList.add('add-counter');
-  el.textContent  = `+${qty}`;
-  el.style.left   = x + 'px';
-  el.style.top    = y + 'px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1500);
+  const counter = document.createElement('div');
+  counter.classList.add('add-counter');
+  counter.textContent = `+${qty}`;
+  counter.style.left = x + 'px';
+  counter.style.top = y + 'px';
+  
+  document.body.appendChild(counter);
+  
+  setTimeout(() => counter.remove(), 1500);
 }
 
 function setPaymentStatus(msg) {
-  document.getElementById('payment-status').textContent = msg || '';
+  const el = document.getElementById('payment-status');
+  el.textContent = msg || '';
 }
 
 function refreshUI() {
   const count = cart.reduce((s, x) => s + x.qty, 0);
-  document.getElementById('cart-count').textContent    = count;
+  document.getElementById('cart-count').textContent = count;
   document.getElementById('cart-subtotal').textContent = 'R$ ' + fmt(getSubtotal('avista'));
-
+  
   if (selectedFrete) {
     document.getElementById('cart-frete').textContent = 'R$ ' + fmt(selectedFrete.price);
   } else {
     document.getElementById('cart-frete').textContent = selectedCep ? 'Calculando...' : 'A calcular';
   }
-
-  document.getElementById('cart-total').textContent    = 'R$ ' + fmt(getTotalWithFrete('avista'));
-  document.getElementById('checkout-btn').disabled     = cart.length === 0;
+  
+  document.getElementById('cart-total').textContent = 'R$ ' + fmt(getTotalWithFrete('avista'));
+  document.getElementById('checkout-btn').disabled = cart.length === 0;
 }
 
 function renderProducts() {
   const grid = document.getElementById('products-grid');
+  
+  // Trava de segurança para garantir que a grade está ativa
   grid.style.display = 'grid';
-
+  
   const list = activeFilter === 'todos'
     ? PRODUCTS
     : PRODUCTS.filter(p => p.cat === activeFilter);
 
   if (!list.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--brown-mid);font-family:Playfair Display,serif;font-size:1.1rem">Nenhum produto nesta categoria ainda.</div>';
+    grid.innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--brown-mid);font-family:Playfair Display,serif;font-size:1.1rem">Nenhum produto nesta categoria ainda.</div>';
     return;
   }
 
@@ -355,7 +369,7 @@ function renderProducts() {
         ${safeMeasure ? `<p class="product-measure">Medida: ${safeMeasure}</p>` : ''}
         <p class="product-desc">${safeDesc}</p>
 
-        <div class="product-footer" style="margin-top: auto;">
+        <div class="product-footer" style="flex-wrap: wrap; margin-top: auto; display: flex; gap: 1rem; justify-content: space-between;">
           ${
             p.custom
               ? `
@@ -368,7 +382,7 @@ function renderProducts() {
                 </button>
               `
               : `
-                <div class="price-focus-box">
+                <div class="price-focus-box" style="flex: 1; min-width: 100%;">
                   <div class="price-main-line">
                     <span class="price-main">R$ ${fmt(p.price)}</span>
                     <span class="pix-chip">PIX</span>
@@ -390,17 +404,17 @@ function renderProducts() {
                     </div>
                   </div>
                 </div>
-
-                <div class="product-actions">
+                
+                <div class="product-actions" style="display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; margin-top: 0.5rem;">
                   ${p.video ? `
-                    <button class="video-btn"
-                            data-video-src="${escapeHtml(p.video)}"
+                    <button class="video-btn" 
+                            data-video-src="${escapeHtml(p.video)}" 
                             data-video-name="${safeName}">
                       🎥 Vídeo
                     </button>
                   ` : ''}
-
-                  <button class="add-btn" data-product-id="${p.id}">
+                  
+                  <button class="add-btn" data-product-id="${p.id}" style="position: relative; flex: 1;">
                     🛍️ Compre agora
                   </button>
                 </div>
@@ -450,28 +464,35 @@ function openCart() {
 }
 
 function closeCart() {
+  // Esconde o menu lateral e o fundo escuro
   document.getElementById('cart-sidebar').classList.remove('open');
   document.getElementById('cart-overlay').classList.remove('open');
 
+  // 1. Zera o campo de texto do CEP
   document.getElementById('cep-input').value = '';
-  selectedCep   = null;
+
+  // 2. Apaga o frete selecionado da memória
+  selectedCep = null;
   selectedFrete = null;
 
+  // 3. Esconde o aviso de "Frete selecionado" e limpa a lista de opções antigas
   document.getElementById('frete-selected').style.display = 'none';
-
+  
   const lista = document.getElementById('frete-options');
-  lista.innerHTML   = '';
+  lista.innerHTML = '';
   lista.style.maxHeight = '500px';
-  lista.style.opacity   = '1';
-  lista.style.overflow  = 'visible';
-  lista.style.display   = 'block';
+  lista.style.opacity = '1';
+  lista.style.overflow = 'visible';
+  lista.style.display = 'block';
 
+  // 4. Atualiza os textos do carrinho (o Total volta ao normal sem o frete)
   refreshUI();
 }
 
 function closeProductVideo() {
-  const modal  = document.getElementById('video-modal');
+  const modal = document.getElementById('video-modal');
   const player = document.getElementById('product-video-player');
+
   player.pause();
   player.removeAttribute('src');
   player.load();
@@ -479,20 +500,31 @@ function closeProductVideo() {
 }
 
 function openProductVideo(src, name, poster) {
-  const modal  = document.getElementById('video-modal');
+  const modal = document.getElementById('video-modal');
   const player = document.getElementById('product-video-player');
 
-  if (src) player.src = src;
+  // 1. Define o caminho do vídeo no player
+  if (src) {
+    player.src = src;
+  }
 
-  // CORREÇÃO: verificar apenas se poster existe e não é vazio
-  if (poster) {
+  // 2. Se houver uma imagem de capa (poster), adiciona, senão remove
+  if (poster && poster !== 'undefined') {
     player.poster = poster;
   } else {
     player.removeAttribute('poster');
   }
 
+  // Opcional: Se você tiver um título no modal do HTML, descomente a linha abaixo e garanta que tem um elemento com id "video-modal-title"
+  // document.getElementById('video-modal-title').textContent = name;
+
+  // 3. Abre o modal
   modal.classList.add('open');
-  player.play().catch(() => {});
+
+  // 4. Dá o play no vídeo automaticamente (se o navegador permitir)
+  player.play().catch(error => {
+    console.log("O autoplay foi bloqueado pelo navegador, o usuário precisa dar play manualmente.", error);
+  });
 }
 
 function updateCheckoutSummary() {
@@ -523,13 +555,7 @@ function getCustomerData() {
 
 function validateCheckout() {
   if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
-
-  // CORREÇÃO: exigir frete selecionado, não apenas CEP preenchido
-  if (!selectedFrete) {
-    showToast('Selecione uma opção de frete.');
-    return false;
-  }
-
+  if (!selectedFrete && !selectedCep) { showToast('Selecione uma opção de frete.'); return false; }
   const customer = getCustomerData();
   if (!customer.name || !customer.phone || !customer.email || !customer.address) {
     showToast('Preencha todos os campos obrigatórios.');
@@ -553,18 +579,28 @@ function buildWhatsAppMessage() {
   const itemsText = cart.map((item, index) => {
     const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
     const subtotal  = unitPrice * item.qty;
-    const sku       = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
-    return `${index + 1}. ${item.name}${sku}\nQtd: ${item.qty}\nValor unitário: R$ ${fmt(unitPrice)}\nSubtotal: R$ ${fmt(subtotal)}`;
+    const sku       = CATALOG[item.id]?.sku 
+      ? ` | SKU: ${CATALOG[item.id].sku}` 
+      : '';
+
+    return `${index + 1}. ${item.name}${sku}
+Qtd: ${item.qty}
+Valor unitário: R$ ${fmt(unitPrice)}
+Subtotal: R$ ${fmt(subtotal)}`;
   }).join('\n\n');
 
   let freteText = '';
   if (selectedFrete) {
-    freteText = selectedFrete.name === 'Cidades vizinhas - Valores a combinar'
-      ? `🚚 *FRETE*: ${selectedFrete.name}`
-      : `🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
+      freteText = `🚚 *FRETE*: ${selectedFrete.name}`;
+    } else {
+      freteText = `🚚 *FRETE*: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
   } else {
     freteText = `🚚 *FRETE*: A combinar`;
   }
+
+  const totalComFrete = getTotalWithFrete(paymentMethod);
 
   return `Olá! Gostaria de finalizar este pedido:
 
@@ -575,7 +611,7 @@ ${itemsText}
 
 ${freteText}
 
-💰 *TOTAL FINAL*: R$ ${fmt(getTotalWithFrete(paymentMethod))}
+💰 *TOTAL FINAL*: R$ ${fmt(totalComFrete)}
 
 👤 *DADOS DO CLIENTE*
 Nome: ${customer.name}
@@ -601,56 +637,60 @@ function sendCustomOrderToWhatsApp(productId) {
   const product = PRODUCTS.find(x => x.id === productId && x.custom);
   if (!product) return;
   const message = buildCustomOrderMessage(product);
-  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 function applyFrete(price, name) {
-  selectedFrete = { price: Number(price), name };
-  selectedCep   = document.getElementById('cep-input').value;
-
-  document.getElementById('frete-selected').style.display    = 'block';
+  selectedFrete = { price: Number(price), name: name };
+  selectedCep = document.getElementById('cep-input').value;
+  
+  document.getElementById('frete-selected').style.display = 'block';
   document.getElementById('frete-selected-text').textContent =
     `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
 
   const lista = document.getElementById('frete-options');
-  lista.style.transition = 'all 0.3s ease';
-  lista.style.maxHeight  = '0px';
-  lista.style.opacity    = '0';
-  lista.style.overflow   = 'hidden';
+  lista.style.transition = "all 0.3s ease";
+  lista.style.maxHeight = "0px";
+  lista.style.opacity = "0";
+  lista.style.overflow = "hidden";
 
   refreshUI();
   updateCheckoutSummary();
 }
 
 function trocarFrete() {
-  const lista   = document.getElementById('frete-options');
-  const resumo  = document.getElementById('frete-selected');
-  lista.style.display   = 'block';
-  lista.style.opacity   = '1';
+  const lista = document.getElementById('frete-options');
+  const resumo = document.getElementById('frete-selected');
+
+  lista.style.display = 'block';
+  lista.style.opacity = '1';
   lista.style.maxHeight = '500px';
-  lista.style.overflow  = 'visible';
-  resumo.style.display  = 'none';
+  lista.style.overflow = 'visible';
+
+  resumo.style.display = 'none';
 }
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
-  const cep        = document.getElementById('cep-input').value.replace(/\D/g, '');
+  const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
   const optionsDiv = document.getElementById('frete-options');
 
-  if (cep.length !== 8) return showToast('Digite um CEP válido (8 dígitos)');
-
+  if (cep.length !== 8) return showToast("Digite um CEP válido (8 dígitos)");
+  
   optionsDiv.innerHTML = '<div style="display: flex; align-items: center; gap: 6px; color: var(--rose-dark);"><span class="loading-spinner"></span> Calculando opções de frete...</div>';
 
   try {
-    const response = await fetch('/api/frete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cep, items: cart })
+    const response = await fetch("/api/frete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cep: cep, items: cart })
     });
 
     const fretes = await response.json();
 
+    // 🔒 PROTEÇÃO: Se a resposta não for uma lista (array), exibe o erro e interrompe para não travar!
     if (!Array.isArray(fretes)) {
-      optionsDiv.innerHTML = 'Não foi possível calcular o frete para este CEP (Erro interno).';
+      optionsDiv.innerHTML = "Não foi possível calcular o frete para este CEP (Erro interno).";
       return;
     }
 
@@ -660,26 +700,21 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
     ];
 
     if (allFretes.length === 0) {
-      optionsDiv.innerHTML = 'Nenhuma opção de frete encontrada.';
+      optionsDiv.innerHTML = "Nenhuma opção de frete encontrada.";
       return;
     }
 
     optionsDiv.innerHTML = allFretes.map((f, i) => `
       <label style="display:block; margin-bottom:8px; cursor:pointer; padding:8px; border:1px solid rgba(169,120,125,.22); border-radius:8px; transition: all .2s; background: #fff;">
-        <input type="radio" name="freteRadio" value="${f.price}" data-name="${escapeHtml(f.company + ' ' + f.name)}" ${i === 0 ? 'checked' : ''} style="cursor: pointer; margin-right: 6px;">
-        <strong style="color: var(--brown);">${escapeHtml(f.company)} - ${escapeHtml(f.name)}</strong><br>
+        <input type="radio" name="freteRadio" value="${f.price}" data-name="${f.company} ${f.name}" ${i === 0 ? 'checked' : ''} style="cursor: pointer; margin-right: 6px;">
+        <strong style="color: var(--brown);">${f.company} - ${f.name}</strong><br>
         <span style="font-size:0.8rem; color:var(--brown-mid)">
           ${f.price > 0 ? `R$ ${f.price.toFixed(2).replace('.', ',')}` : 'Sob consulta'} ${f.delivery_time > 0 ? `| Prazo: ${f.delivery_time} dias úteis` : ''}
         </span>
       </label>
     `).join('');
 
-    const primeiroFrete = fretes[0];
-    if (primeiroFrete) {
-      applyFrete(primeiroFrete.price, `${primeiroFrete.company} ${primeiroFrete.name}`);
-    } else {
-      applyFrete(0, 'Cidades vizinhas - Valores a combinar');
-    }
+    applyFrete(fretes[0]?.price || 0, `${fretes[0]?.company || 'Ateliê'} ${fretes[0]?.name || 'Cidades vizinhas - Valores a combinar'}`);
 
     document.querySelectorAll('input[name="freteRadio"]').forEach(radio => {
       radio.addEventListener('change', (e) => {
@@ -689,7 +724,7 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
   } catch (e) {
     console.error(e);
-    optionsDiv.innerHTML = 'Erro de conexão ao buscar frete.';
+    optionsDiv.innerHTML = "Erro de conexão ao buscar frete.";
   }
 });
 
@@ -714,7 +749,7 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
     openProductVideo(
       videoBtn.dataset.videoSrc,
       videoBtn.dataset.videoName,
-      videoBtn.dataset.videoPoster || ''
+      videoBtn.dataset.videoPoster
     );
     return;
   }
@@ -738,12 +773,17 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
   renderCartBody();
   showToast(`${p.name} adicionado!`);
   bumpBadge();
-
-  const rect      = btn.getBoundingClientRect();
-  const btnCenterX = rect.left + rect.width  / 2;
-  const btnCenterY = rect.top  + rect.height / 2;
+  
+  // 🎊 EFEITOS VISUAIS
+  const rect = btn.getBoundingClientRect();
+  const btnCenterX = rect.left + rect.width / 2;
+  const btnCenterY = rect.top + rect.height / 2;
+  
+  // Confete
   createConfetti(btnCenterX, btnCenterY);
-  createFloatingCounter(btnCenterX - 15, btnCenterY - 30, 1);
+  
+  // Contador flutuante
+  createFloatingCounter(btnCenterX - 15, btnCenterY - 30, existing ? 1 : 1);
 });
 
 document.getElementById('cart-body').addEventListener('click', (e) => {
@@ -775,21 +815,22 @@ document.getElementById('cart-overlay').addEventListener('click', closeCart);
 
 document.getElementById('checkout-btn').addEventListener('click', () => {
   if (!cart.length) return;
-  if (!selectedFrete) {
+  if (!selectedFrete && !selectedCep) {
     showToast('Selecione uma opção de frete antes de continuar.');
     return;
   }
   closeCart();
   setPaymentStatus('');
-
+  
   document.getElementById('modal-cep-display').textContent = selectedCep || 'Não informado';
   if (selectedFrete) {
-    document.getElementById('modal-frete-display').textContent =
-      selectedFrete.name === 'Cidades vizinhas - Valores a combinar'
-        ? selectedFrete.name
-        : `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
+      document.getElementById('modal-frete-display').textContent = selectedFrete.name;
+    } else {
+      document.getElementById('modal-frete-display').textContent = `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
   }
-
+  
   document.getElementById('checkout-modal').classList.add('open');
   updateCheckoutSummary();
 });
@@ -811,6 +852,7 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
+// Trava de segurança: Só tenta adicionar o evento se o botão existir no HTML
 const btnTrocarFrete = document.getElementById('btn-trocar-frete');
 if (btnTrocarFrete) {
   btnTrocarFrete.addEventListener('click', trocarFrete);
