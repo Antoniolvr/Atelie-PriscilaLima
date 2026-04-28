@@ -13,25 +13,22 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ─────────────────────────────────────────────────────────
-// CATÁLOGO DE PRODUTOS — preços e pesos (sincronizados com o frontend)
-// Peso em Quilos (ex: 0.3 = 300g)
+// CATALOGO DE PRODUTOS (Preço e Peso)
+// AVISO: Atualize o 'weight' (peso) de cada produto em Quilos (ex: 0.3 = 300g)
 // ─────────────────────────────────────────────────────────
 const CATALOGO_PRODUTOS = {
-  1:  { price: 30.00, weight: 0.195 },
-  2:  { price: 35.00, weight: 0.246 },
-  3:  { price: 25.00, weight: 0.159 },
-  4:  { price: 25.00, weight: 0.185 },
-  5:  { price: 60.00, weight: 0.600 },
-  6:  { price: 60.00, weight: 0.600 },
-  7:  { price: 30.00, weight: 0.175 },
-  8:  { price: 10.00, weight: 0.036 },
-  9:  { price: 55.00, weight: 0.083 },
+  1: { price: 32.99, weight: 0.195 }, // Ex: 300g
+  2: { price: 38.99, weight: 0.246 }, // Ex: 450g
+  3: { price: 27.99, weight: 0.159 }, // Ex: 250g
+  4: { price: 27.99, weight: 0.185 },
+  5: { price: 65.99, weight: 0.60 }, // Ex: 600g
+  6: { price: 65.99, weight: 0.60 },
+  7: { price: 32.99, weight: 0.175 },
+  8: { price: 10.99, weight: 0.036 }, // Ex: 100g
+  9: { price: 59.99, weight: 0.083 },
   10: { price: 40.00, weight: 0.186 },
-  11: { price:  4.00, weight: 0.080 }
+  11: { price: 4.00, weight: 0.08 }
 };
-
-// IDs válidos de produto (sem o produto personalizado)
-const IDS_VALIDOS = new Set(Object.keys(CATALOGO_PRODUTOS).map(Number));
 
 // ─────────────────────────────────────────────────────────
 // MIDDLEWARES DE SEGURANÇA
@@ -44,102 +41,71 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORREÇÃO: CORS restrito ao domínio da loja (não mais '*')
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://atelie-priscilalima.onrender.com';
-app.use(cors({
-  origin: ALLOWED_ORIGIN,
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type']
-}));
+app.use(cors({ origin: '*', credentials: true }));
 
-// CORREÇÃO: Rate limit global para todas as rotas
-const globalLimiter = rateLimit({
+const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { error: 'Muitas tentativas, tente novamente mais tarde.' },
-  standardHeaders: true,
-  legacyHeaders: false
-});
-app.use(globalLimiter);
-
-// Rate limit mais restrito especificamente para o cálculo de frete
-const freteLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10,
-  message: { error: 'Muitas consultas de frete. Aguarde um minuto.' },
-  standardHeaders: true,
-  legacyHeaders: false
+  max: 50,
+  message: { error: 'Muitas tentativas, tente novamente mais tarde.' }
 });
 
 app.use(express.json({ limit: "20kb" }));
 app.use(express.urlencoded({ limit: "20kb", extended: true }));
 
 // ─────────────────────────────────────────────────────────
-// ROTA: Cálculo de Frete
+// Rota de Cálculo de Frete (Com Inteligência de Peso e Empacotamento)
 // ─────────────────────────────────────────────────────────
-app.post('/api/frete', freteLimiter, async (req, res) => {
+app.post('/api/frete', limiter, async (req, res) => {
   try {
     const { cep, items } = req.body;
 
-    // Validar CEP
     if (!cep || typeof cep !== 'string') return res.json([]);
     const cleanCep = cep.replace(/\D/g, '');
     if (cleanCep.length !== 8) return res.json([]);
+    if (!Array.isArray(items) || items.length === 0) return res.json([]);
 
-    // CORREÇÃO: Validar e limitar o array de itens (máx. 20 itens distintos)
-    if (!Array.isArray(items) || items.length === 0 || items.length > 20) {
-      return res.json([]);
-    }
-
+    // 1. CONTABILIZAR TOTAIS DO CARRINHO (Agora soma o peso exato)
     let quantidadeTotalItens = 0;
     let valorTotalSeguro = 0;
     let pesoTotalFisico = 0;
 
-    for (const item of items) {
-      // CORREÇÃO: Validar id como número inteiro dentro do catálogo
-      const id = parseInt(item.id, 10);
-      if (!Number.isFinite(id) || !IDS_VALIDOS.has(id)) continue;
-
-      // CORREÇÃO: parseInt com radix 10 e limite de quantidade (1–99)
-      const qtd = Math.max(1, Math.min(99, parseInt(item.qty, 10) || 1));
-      const produto = CATALOGO_PRODUTOS[id];
-
+    items.forEach(item => {
+      const qtd = Math.max(1, parseInt(item.qty) || 1);
       quantidadeTotalItens += qtd;
-      valorTotalSeguro     += produto.price  * qtd;
-      pesoTotalFisico      += produto.weight * qtd;
-    }
 
-    if (quantidadeTotalItens === 0) return res.json([]);
+      // Busca o produto no catálogo. Se não achar, usa valores zerados/padrão
+      const produtoOficial = CATALOGO_PRODUTOS[item.id] || { price: 0, weight: 0.3 };
+      
+      valorTotalSeguro += (produtoOficial.price * qtd);
+      pesoTotalFisico += (produtoOficial.weight * qtd);
+    });
 
-    // Lógica de caixas (até 6 produtos por caixa)
+    // 2. LÓGICA DE CAIXAS (Até 6 produtos por caixa)
     const LIMITE_POR_CAIXA = 6;
-    const numeroDeCaixas   = Math.ceil(quantidadeTotalItens / LIMITE_POR_CAIXA);
-    const pesoPorCaixa     = pesoTotalFisico / numeroDeCaixas;
-    const seguroPorCaixa   = valorTotalSeguro / numeroDeCaixas;
+    const numeroDeCaixas = Math.ceil(quantidadeTotalItens / LIMITE_POR_CAIXA);
+    
+    // Divide o peso total e o seguro igualmente pelo número de caixas físicas
+    const pesoPorCaixa = pesoTotalFisico / numeroDeCaixas;
+    const seguroPorCaixa = valorTotalSeguro / numeroDeCaixas;
 
+    // 3. MONTAR O PACOTE PARA O MELHOR ENVIO
     const payload = {
-      from: { postal_code: process.env.STORE_CEP }, // CORREÇÃO: sem fallback hardcoded
-      to:   { postal_code: cleanCep },
+      from: { postal_code: process.env.STORE_CEP || "55820000" },
+      to: { postal_code: cleanCep },
       products: [
         {
           id: "caixa_padrao",
-          width: 20,
-          height: 10,
-          length: 15,
-          weight: pesoPorCaixa,
+          width: 20,  // Largura da sua caixa padrão (cm)
+          height: 10, // Altura da sua caixa padrão (cm)
+          length: 15, // Comprimento da sua caixa padrão (cm)
+          weight: pesoPorCaixa, // Peso calculado dinamicamente!
           insurance_value: seguroPorCaixa,
-          quantity: numeroDeCaixas
+          quantity: numeroDeCaixas // Quantas caixas serão enviadas
         }
       ]
     };
 
-    // CORREÇÃO: Timeout de 8 segundos na chamada ao Melhor Envio
-    const controller = new AbortController();
-    const timeout    = setTimeout(() => controller.abort(), 8000);
-
-    let response;
-    try {
-      response = await fetch('https://www.melhorenvio.com.br/api/v2/me/shipment/calculate', {
+    const response = await fetch('https://www.melhorenvio.com.br/api/v2/me/shipment/calculate', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.MELHOR_ENVIO_TOKEN}`,
@@ -147,12 +113,8 @@ app.post('/api/frete', freteLimiter, async (req, res) => {
           'User-Agent': 'AteliePriscilaLima (email: atelieplima@gmail.com)',
           'Accept': 'application/json'
         },
-        body: JSON.stringify(payload),
-        signal: controller.signal
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
+        body: JSON.stringify(payload)
+    });
 
     if (!response.ok) return res.json([]);
 
@@ -162,11 +124,11 @@ app.post('/api/frete', freteLimiter, async (req, res) => {
     const fretesProcessados = data
       .filter(f => f && f.price && f.company)
       .map(f => ({
-        company:       String(f.company.name).trim(),
-        name:          String(f.name || 'Envio').trim(),
-        price:         parseFloat(f.price),
-        delivery_time: parseInt(f.delivery_time, 10) || 0,
-        id:            f.id || Math.random().toString(36)
+        company: String(f.company.name).trim(),
+        name: String(f.name || 'Envio').trim(),
+        price: parseFloat(f.price),
+        delivery_time: parseInt(f.delivery_time) || 0,
+        id: f.id || Math.random().toString(36)
       }))
       .sort((a, b) => a.price - b.price)
       .slice(0, 3);
@@ -174,12 +136,8 @@ app.post('/api/frete', freteLimiter, async (req, res) => {
     res.json(fretesProcessados);
 
   } catch (err) {
-    if (err.name === 'AbortError') {
-      console.error('[FRETE] Timeout na chamada ao Melhor Envio');
-    } else {
-      console.error('[FRETE ERROR]', err.message);
-    }
-    res.json([]);
+    console.error('[FRETE ERROR]', err.message);
+    res.json([]); 
   }
 });
 
@@ -192,8 +150,7 @@ app.get("*", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error('[UNHANDLED ERROR]', err.message);
-  res.json([]);
+  res.json([]); 
 });
 
 app.listen(PORT, () => {
