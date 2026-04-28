@@ -178,10 +178,8 @@ const fmt = n => Number(n).toFixed(2).replace('.', ',');
 
 function getCardPrice(price) {
   const base = Number(price) * (1 + CARD_FEE_PERCENT / 100);
-
   const inteiro = Math.ceil(base);
   const final = inteiro - 0.01;
-
   return Number(final.toFixed(2));
 }
 
@@ -275,7 +273,7 @@ function createConfetti(x, y) {
     confetti.style.left = (x + (Math.random() - 0.5) * 100) + 'px';
     confetti.style.top = y + 'px';
     
-    // Tamanho aleátório
+    // Tamanho aleatório
     const size = Math.random() * 8 + 5;
     confetti.style.width = size + 'px';
     confetti.style.height = size + 'px';
@@ -464,18 +462,13 @@ function openCart() {
 }
 
 function closeCart() {
-  // Esconde o menu lateral e o fundo escuro
   document.getElementById('cart-sidebar').classList.remove('open');
   document.getElementById('cart-overlay').classList.remove('open');
-
-  // 1. Zera o campo de texto do CEP
   document.getElementById('cep-input').value = '';
 
-  // 2. Apaga o frete selecionado da memória
   selectedCep = null;
   selectedFrete = null;
 
-  // 3. Esconde o aviso de "Frete selecionado" e limpa a lista de opções antigas
   document.getElementById('frete-selected').style.display = 'none';
   
   const lista = document.getElementById('frete-options');
@@ -485,7 +478,6 @@ function closeCart() {
   lista.style.overflow = 'visible';
   lista.style.display = 'block';
 
-  // 4. Atualiza os textos do carrinho (o Total volta ao normal sem o frete)
   refreshUI();
 }
 
@@ -503,25 +495,18 @@ function openProductVideo(src, name, poster) {
   const modal = document.getElementById('video-modal');
   const player = document.getElementById('product-video-player');
 
-  // 1. Define o caminho do vídeo no player
   if (src) {
     player.src = src;
   }
 
-  // 2. Se houver uma imagem de capa (poster), adiciona, senão remove
   if (poster && poster !== 'undefined') {
     player.poster = poster;
   } else {
     player.removeAttribute('poster');
   }
 
-  // Opcional: Se você tiver um título no modal do HTML, descomente a linha abaixo e garanta que tem um elemento com id "video-modal-title"
-  // document.getElementById('video-modal-title').textContent = name;
-
-  // 3. Abre o modal
   modal.classList.add('open');
 
-  // 4. Dá o play no vídeo automaticamente (se o navegador permitir)
   player.play().catch(error => {
     console.log("O autoplay foi bloqueado pelo navegador, o usuário precisa dar play manualmente.", error);
   });
@@ -540,31 +525,35 @@ function updateCheckoutSummary() {
   document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotalWithFrete(paymentMethod));
 }
 
+// ATUALIZADO: Buscar apenas dados que permaneceram (sem email, telefone, endereço) e checar LGPD
 function getCustomerData() {
   const form = document.getElementById('checkout-form');
   const data = new FormData(form);
   return {
     paymentMethod: String(data.get('paymentMethod') || 'avista').trim(),
-    name:    String(data.get('name')    || '').trim(),
-    phone:   String(data.get('phone')   || '').trim(),
-    email:   String(data.get('email')   || '').trim(),
-    address: String(data.get('address') || '').trim(),
-    note:    String(data.get('note')    || '').trim()
+    name:          String(data.get('name')          || '').trim(),
+    note:          String(data.get('note')          || '').trim(),
+    lgpd:          data.get('lgpdConsent') === 'on' 
   };
 }
 
+// ATUALIZADO: Validação focada no Nome e no consentimento da LGPD
 function validateCheckout() {
   if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
   if (!selectedFrete && !selectedCep) { showToast('Selecione uma opção de frete.'); return false; }
+  
   const customer = getCustomerData();
-  if (!customer.name || !customer.phone || !customer.email || !customer.address) {
-    showToast('Preencha todos os campos obrigatórios.');
+  
+  if (!customer.name) {
+    showToast('Por favor, preencha o seu nome ou apelido.');
     return false;
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email)) {
-    showToast('Informe um e-mail válido.');
+  
+  if (!customer.lgpd) {
+    showToast('Você precisa concordar com o envio dos dados (Caixa de seleção).');
     return false;
   }
+  
   return true;
 }
 
@@ -572,6 +561,7 @@ function getPaymentMethodLabel(paymentMethod) {
   return paymentMethod === 'cartao' ? 'Cartão em até 6x sem juros' : 'PIX';
 }
 
+// ATUALIZADO: Monta a mensagem sem os dados sensíveis removidos
 function buildWhatsAppMessage() {
   const customer      = getCustomerData();
   const paymentMethod = customer.paymentMethod;
@@ -615,10 +605,9 @@ ${freteText}
 
 👤 *DADOS DO CLIENTE*
 Nome: ${customer.name}
-Telefone: ${customer.phone}
-E-mail: ${customer.email}
-Endereço: ${customer.address}
-Observações: ${customer.note || 'Nenhuma'}`;
+Observações: ${customer.note || 'Nenhuma'}
+
+_(O endereço de entrega e os dados de contato completos serão combinados por aqui na conversa)_`;
 }
 
 function buildCustomOrderMessage(product) {
@@ -852,7 +841,6 @@ document.getElementById('video-modal').addEventListener('click', function(e) {
 document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
 document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
 
-// Trava de segurança: Só tenta adicionar o evento se o botão existir no HTML
 const btnTrocarFrete = document.getElementById('btn-trocar-frete');
 if (btnTrocarFrete) {
   btnTrocarFrete.addEventListener('click', trocarFrete);
