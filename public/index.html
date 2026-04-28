@@ -5,19 +5,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!--
-  CORREÇÃO: 'unsafe-inline' removido do style-src.
-  Os estilos inline que existem no HTML gerado via JS (script.js) utilizam
-  element.style e innerHTML — esses são controlados pelo script, não pela CSP.
-  A CSP abaixo bloqueia apenas <style> inline no HTML e style= em atributos estáticos.
--->
 <meta http-equiv="Content-Security-Policy" content="
   default-src 'self';
   script-src 'self';
-  style-src 'self' https://fonts.googleapis.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data:;
-  media-src 'self';
   connect-src 'self';
   frame-ancestors 'none';
   base-uri 'self';
@@ -29,6 +22,8 @@
 <title>Ateliê Priscila Lima — Crochê Artesanal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Lora:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/style.css">
+
+
 </head>
 <body>
 
@@ -138,18 +133,28 @@
   </div>
   <div class="cart-body" id="cart-body"></div>
   <div class="cart-foot">
-    <div class="frete-box">
-      <p class="frete-box-title">📍 Calcular Frete</p>
-      <div class="frete-input-row">
-        <input type="text" id="cep-input" placeholder="00000-000" maxlength="9" class="frete-cep-input">
-        <button id="calc-frete-btn" class="frete-calc-btn">Calcular</button>
+    <div style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--brown-mid); padding: 0.8rem; background: rgba(216,182,185,.12); border-radius: 12px;">
+      <p style="margin-bottom: 0.6rem; font-weight: 600; color: var(--brown);">📍 Calcular Frete</p>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <input type="text" id="cep-input" placeholder="00000-000" maxlength="9" style="flex:1; padding: 8px; border-radius: 8px; border: 1px solid rgba(169,120,125,.3); font-size: 0.9rem;">
+        <button id="calc-frete-btn" style="background: var(--rose-dark); color: white; border: none; padding: 0 12px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all .2s;">Calcular</button>
       </div>
-      <div id="frete-options"></div>
-      <div id="frete-selected" class="frete-selected-box">
-        <p class="frete-selected-label">✓ Frete selecionado:</p>
-        <p id="frete-selected-text" class="frete-selected-text"></p>
-        <button id="btn-trocar-frete" class="frete-trocar-btn">Trocar frete</button>
-      </div>
+      <div id="frete-options" style="margin-top: 10px;"></div>
+     <div id="frete-selected" style="margin-top: 8px; padding: 8px; background: #fff; border-radius: 8px; display: none;">
+  <p style="margin: 0; color: var(--rose-dark); font-weight: 600; font-size: 0.88rem;">
+    ✓ Frete selecionado:
+  </p>
+  <p id="frete-selected-text" style="margin: 4px 0 6px 0; color: var(--brown); font-size: 0.9rem;"></p>
+  
+  <button id="btn-trocar-frete" style="
+    background: none;
+    border: none;
+    color: var(--rose-dark);
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: underline;
+  ">Trocar frete</button>
+</div>
     </div>
 
     <div class="cart-grand">
@@ -157,16 +162,16 @@
       <span class="cart-grand-value" id="cart-subtotal">R$ 0,00</span>
     </div>
 
-    <div class="cart-frete-row">
-      <span class="cart-frete-label">🚚 Frete:</span>
-      <span id="cart-frete" class="cart-frete-value">A calcular</span>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.8rem; background: rgba(216,182,185,.08); border-radius: 12px; margin-bottom: 1rem;">
+      <span style="font-size: 0.85rem; color: var(--brown-mid);">🚚 Frete:</span>
+      <span id="cart-frete" style="font-size: 0.95rem; font-weight: 600; color: var(--rose-dark);">A calcular</span>
     </div>
 
-    <div class="cart-grand cart-grand-total">
+    <div class="cart-grand" style="border-top: 2px solid rgba(216,182,185,.25); padding-top: 1rem;">
       <span class="cart-grand-label">Total Final</span>
       <span class="cart-grand-value" id="cart-total">R$ 0,00</span>
     </div>
-
+    
     <button id="checkout-btn" disabled>Finalizar Pedido no WhatsApp →</button>
   </div>
 </aside>
@@ -181,9 +186,9 @@
     <p class="sum-title">📋 Resumo do Pedido</p>
     <div id="sum-items"></div>
 
-    <div class="modal-frete-info">
-      <p><strong>CEP:</strong> <span id="modal-cep-display"></span></p>
-      <p><strong>Frete:</strong> <span id="modal-frete-display"></span></p>
+    <div style="padding: 0.8rem; background: rgba(216,182,185,.12); border-radius: 12px; margin: 1rem 0; font-size: 0.88rem;">
+      <p style="margin: 0 0 0.4rem 0; color: var(--brown-mid);"><strong>CEP:</strong> <span id="modal-cep-display"></span></p>
+      <p style="margin: 0; color: var(--brown-mid);"><strong>Frete:</strong> <span id="modal-frete-display"></span></p>
     </div>
 
     <form id="checkout-form" class="form-grid">
@@ -194,6 +199,7 @@
           <option value="cartao">Cartão</option>
         </select>
       </div>
+
       <div class="field">
         <label for="customer-name">Nome completo</label>
         <input id="customer-name" name="name" required maxlength="120" autocomplete="name">
@@ -232,6 +238,7 @@
       <h3 class="video-modal-title" id="video-modal-title">Vídeo do produto</h3>
       <button class="x-btn" id="video-close-btn">✕</button>
     </div>
+
     <div class="video-frame">
       <video id="product-video-player" controls playsinline preload="metadata"></video>
     </div>
@@ -239,7 +246,8 @@
 </div>
 
 <div class="toast" id="toast"></div>
-
+  
 <script src="/script.js"></script>
+
 </body>
 </html>
