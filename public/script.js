@@ -660,11 +660,53 @@ function trocarFrete() {
 }
 
 // ==========================================
+// FUNÇÕES AUXILIARES DA PÁGINA DO PRODUTO
+// ==========================================
+window.switchMedia = function(type, src, element) {
+  const img = document.getElementById('zoom-img');
+  const video = document.getElementById('viewer-video');
+  const container = document.getElementById('zoom-container');
+  
+  // Atualiza qual miniatura está selecionada
+  document.querySelectorAll('.pp-thumb').forEach(t => t.classList.remove('active'));
+  if(element) element.classList.add('active');
+
+  if (type === 'image') {
+    video.style.display = 'none';
+    video.pause();
+    img.style.display = 'block';
+    img.src = src;
+    container.style.cursor = 'zoom-in'; // Volta a permitir zoom
+  } else if (type === 'video') {
+    img.style.display = 'none';
+    video.style.display = 'block';
+    video.src = src;
+    video.play().catch(e => console.log(e));
+    container.style.cursor = 'default'; // Desativa zoom no vídeo
+  }
+};
+
+window.comprarAgoraRapido = function(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  const existing = cart.find(x => x.id === id);
+  if (existing) {
+    existing.qty = Math.min(99, existing.qty + 1);
+  } else {
+    cart.push({ id: p.id, qty: 1, name: p.name, price: p.price, image: p.image });
+  }
+  saveCart();
+  refreshUI();
+  renderCartBody();
+  openCart(); // Abre o carrinho na lateral pronto para finalizar
+};
+
+// ==========================================
 // FUNÇÃO DA PÁGINA ÚNICA DE PRODUTO
 // ==========================================
 function renderSingleProduct() {
   const container = document.getElementById('single-product-container');
-  if (!container) return; // Se não estiver na página do produto, ignora.
+  if (!container) return; 
 
   const params = new URLSearchParams(window.location.search);
   const id = parseInt(params.get('id'), 10);
@@ -684,85 +726,130 @@ function renderSingleProduct() {
   
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
-  let priceHtml = '';
-  if (p.custom) {
-    priceHtml = `
-      <div class="product-price">Sob encomenda</div>
-      <button class="add-btn custom-btn" data-custom-id="${p.id}" style="margin-top: 1.5rem; width: 100%;">
-        ${escapeHtml(p.buttonText || 'Solicitar')}
-      </button>`;
-  } else {
-    priceHtml = `
-      <div class="price-focus-box">
-        <div class="price-main-line">
-          <span class="price-main">R$ ${fmt(p.price)}</span>
-          <span class="pix-chip">PIX</span>
-        </div>
-        <div class="price-economy-badge" style="margin-bottom: 0.5rem;">💰 Economize R$ ${fmt(getCashSavings(p.price))}</div>
-        <div style="font-size:1.25rem; font-weight:700; color:#2e7d32; margin-top:0.5rem;">
-          💳 6x de R$ ${fmt(getInstallment(p.price))}
-        </div>
-        <div style="font-size:.85rem; color:var(--brown-mid);">sem juros no cartão</div>
+  // 1. GERAÇÃO DA GALERIA DE FOTOS (ESQUERDA)
+  const mediaHtml = `
+    <div class="pp-media-gallery">
+      <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
+        ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `
+          <img src="${safeImage}" id="zoom-img" alt="${safeName}">
+          <video id="viewer-video" controls playsinline style="display:none; width:100%; height:100%; background:#000;"></video>
+        `}
       </div>
-      
-      <div class="product-actions" style="margin-top: 2rem;">
-        <button class="add-btn" data-product-id="${p.id}" style="width: 100%; height: 60px; font-size: 1.1rem;">
-          🛍️ Adicionar ao Carrinho
-        </button>
-      </div>`;
-  }
-
- container.innerHTML = `
-    <div class="pp-image-col" id="zoom-container" style="background:${safeColor}; position: relative; overflow: hidden;">
-      ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `<img id="zoom-img" src="${safeImage}" alt="${safeName}" style="width: 100%; max-height: 500px; object-fit: contain; mix-blend-mode: multiply; will-change: transform;">`}
-    </div>
-    
-    <div class="pp-info-col">
-      <div class="pp-breadcrumb">
-        <a href="/">Início</a> / <a href="/#produtos">${safeCat}</a> / <span style="color: var(--brown);">${safeName}</span>
+      ${!p.custom ? `
+      <div class="pp-thumbnails">
+        <div class="pp-thumb active" onclick="window.switchMedia('image', '${safeImage}', this)" style="background:${safeColor}">
+          <img src="${safeImage}" alt="Foto 1">
+        </div>
+        ${p.video ? `
+        <div class="pp-thumb" onclick="window.switchMedia('video', '${escapeHtml(p.video)}', this)" style="position:relative; background:#000;">
+          <span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:1.2rem; pointer-events:none;">▶</span>
+          <video src="${escapeHtml(p.video)}" style="opacity:0.7"></video>
+        </div>
+        ` : ''}
       </div>
-      <h1 class="pp-title">${safeName}</h1>
-      ${p.badge ? `<span class="product-badge" style="position: relative; top: 0; right: 0; display: inline-block; margin-bottom: 1rem;">${escapeHtml(p.badge)}</span>` : ''}
-      
-      ${safeMeasure ? `<p class="product-measure" style="font-size: 1rem;"><strong>Medida:</strong> ${safeMeasure}</p>` : ''}
-      
-      <div class="pp-desc">${safeDesc}</div>
-      
-      ${priceHtml}
+      ` : ''}
     </div>
   `;
 
+  // 2. GERAÇÃO DA CAIXA DE COMPRA (DIREITA)
+  let buyBoxHtml = `
+    <div class="pp-buy-box">
+      <div class="pp-breadcrumb">
+        <a href="/">Início</a> / <a href="/#produtos">${safeCat}</a>
+      </div>
+      <h1 class="pp-title">${safeName}</h1>
+      ${p.badge ? `<span class="product-badge" style="position: relative; top: 0; right: 0; display: inline-block; margin-bottom: 1rem;">${escapeHtml(p.badge)}</span>` : ''}
+  `;
+
+  if (p.custom) {
+    buyBoxHtml += `
+      <div class="product-price" style="margin-top: 1rem;">Sob encomenda</div>
+      <button class="pp-btn-comprar custom-btn" data-custom-id="${p.id}" style="margin-top: 1.5rem;">
+        ${escapeHtml(p.buttonText || 'Solicitar Orçamento no WhatsApp')}
+      </button>
+    `;
+  } else {
+    buyBoxHtml += `
+      <div class="price-focus-box" style="margin-top: 1.5rem;">
+        <div style="font-size: 0.95rem; color: var(--brown-light); text-decoration: line-through;">R$ ${fmt(getCardPrice(p.price))}</div>
+        <div class="price-main-line" style="margin-top: 4px;">
+          <span class="price-main" style="font-size: 2.4rem;">R$ ${fmt(p.price)}</span>
+          <span style="font-size: 1rem; color: var(--rose-dark); font-weight: bold; margin-left: 8px;">no PIX</span>
+          <span class="price-economy-badge" style="margin-left: auto; padding: 4px 8px; font-size: 0.75rem;">-${CARD_FEE_PERCENT}% OFF</span>
+        </div>
+        <div style="font-size:1.05rem; color:#2e7d32; margin-top:0.8rem;">
+          ou R$ ${fmt(getCardPrice(p.price))} em até <strong>6x de R$ ${fmt(getInstallment(p.price))}</strong> sem juros
+        </div>
+      </div>
+      
+      <div class="pp-frete-box">
+        <p style="margin:0 0 8px 0; font-weight:600; color:var(--brown); font-size: 0.95rem;">📍 Calcular frete e prazo</p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="pp-cep-input" placeholder="00000-000" maxlength="9" style="flex:1; padding: 12px; border-radius: 8px; border: 1px solid rgba(169,120,125,.3); font-size: 0.95rem;">
+          <button onclick="document.getElementById('cep-input').value = document.getElementById('pp-cep-input').value; openCart(); setTimeout(() => document.getElementById('calc-frete-btn').click(), 400);" style="background: var(--brown); color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer; font-weight: 600;">Calcular</button>
+        </div>
+      </div>
+
+      <div class="pp-actions">
+        <button class="pp-btn-sacola add-btn" data-product-id="${p.id}">
+          🛍️ Adicionar à sacola
+        </button>
+        <button class="pp-btn-comprar" onclick="window.comprarAgoraRapido(${p.id})">
+          💳 Comprar agora
+        </button>
+      </div>
+    `;
+  }
+  buyBoxHtml += `</div>`;
+
+  // 3. GERAÇÃO DA DESCRIÇÃO (EMBAIXO)
+  const bottomHtml = `
+    <div class="pp-bottom-section">
+      <h2 class="pp-bottom-title">Descrição e ficha técnica</h2>
+      <div style="font-size: 0.9rem; color: var(--brown-light); margin-bottom: 1.5rem;">Código do Produto: ${p.sku || 'SKU-'+p.id}</div>
+      <div class="pp-desc-content">
+        <p>${safeDesc}</p>
+        ${safeMeasure ? `<p style="margin-top: 1rem;"><strong>📏 Medidas:</strong> ${safeMeasure}</p>` : ''}
+        <p style="margin-top: 0.5rem;"><strong>🧶 Material:</strong> Fios de alta qualidade, produção 100% artesanal.</p>
+      </div>
+    </div>
+  `;
+
+  // Junta tudo no container
+  container.innerHTML = `
+    <div class="pp-top-section">
+      ${mediaHtml}
+      ${buyBoxHtml}
+    </div>
+    ${bottomHtml}
+  `;
+
   // ==========================================
-  // 🔍 LÓGICA DO ZOOM NA IMAGEM (ESTILO LUPA)
+  // 🔍 LÓGICA DO ZOOM MANTIDA NA FOTO PRINCIPAL
   // ==========================================
   const zoomContainer = document.getElementById('zoom-container');
   const zoomImg = document.getElementById('zoom-img');
 
   if (zoomContainer && zoomImg) {
     zoomContainer.style.cursor = 'zoom-in';
-    
-    // Suaviza a entrada e saída do zoom
     zoomImg.style.transition = 'transform 0.15s ease-out';
     
     zoomContainer.addEventListener('mousemove', (e) => {
-      // Pega o tamanho e posição exata da caixa da imagem na tela
+      // Se o display for none (ex: vídeo tocando), ignora o zoom
+      if(zoomImg.style.display === 'none') return; 
+
       const rect = zoomContainer.getBoundingClientRect();
-      
-      // Calcula onde o mouse está dentro da caixa
       const x = e.clientX - rect.left; 
       const y = e.clientY - rect.top;  
       
-      // Converte para porcentagem (%)
       const xPercent = (x / rect.width) * 100;
       const yPercent = (y / rect.height) * 100;
       
-      // Move o centro da imagem para onde o mouse está e dá o Zoom de 2.5x
       zoomImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
       zoomImg.style.transform = 'scale(2.5)'; 
     });
 
     zoomContainer.addEventListener('mouseleave', () => {
-      // Quando tirar o mouse, volta a imagem ao normal
       zoomImg.style.transformOrigin = 'center center';
       zoomImg.style.transform = 'scale(1)';
     });
