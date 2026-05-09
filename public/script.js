@@ -413,8 +413,8 @@ function renderProducts() {
                       🎥 Vídeo
                     </button>
                   ` : ''}
-                  
-               <button class="pp-btn-comprar" onclick="window.comprarAgoraRapido(${p.id})" style="position: relative; flex: 1;">
+    
+<button class="quick-buy-btn pp-btn-comprar" data-product-id="${p.id}" style="position: relative; flex: 1;">
   🛍️ Compre agora
 </button>
                 </div>
@@ -911,15 +911,15 @@ function renderSingleProduct() {
       </div>
       ${!p.custom ? `
       <div class="pp-thumbnails">
-        <div class="pp-thumb active" onclick="window.switchMedia('image', '${safeImage}', this)" style="background:${safeColor}">
-          <img src="${safeImage}" alt="Foto Principal">
-        </div>
-        ${p.video ? `
-        <div class="pp-thumb" onclick="window.switchMedia('video', '${escapeHtml(p.video)}', this)" style="position:relative; background:#000;">
-          <span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:1.2rem; pointer-events:none;">▶</span>
-          <video src="${escapeHtml(p.video)}" style="opacity:0.7"></video>
-        </div>
-        ` : ''}
+        <div class="pp-thumb active" data-type="image" data-src="${safeImage}" style="background:${safeColor}">
+  <img src="${safeImage}" alt="Foto Principal">
+</div>
+${p.video ? `
+<div class="pp-thumb" data-type="video" data-src="${escapeHtml(p.video)}" style="position:relative; background:#000;">
+  <span style="position:absolute; ...">▶</span>
+  <video src="${escapeHtml(p.video)}" style="opacity:0.7"></video>
+</div>
+` : ''}
       </div>
       ` : ''}
     </div>
@@ -952,14 +952,14 @@ function renderSingleProduct() {
         <p style="margin:0 0 8px 0; font-weight:600; color:var(--brown); font-size:0.9rem;">🚚 Calcular frete e prazo</p>
         <div style="display:flex; gap:8px;">
           <input type="text" id="pp-cep-input" placeholder="00000-000" maxlength="9" value="${selectedCep || ''}" style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(169,120,125,.3);">
-          <button onclick="window.calculateProductFrete()" style="background:var(--brown); color:white; border:none; padding:0 12px; border-radius:8px; cursor:pointer; font-weight:600;">Calcular</button>
+          <button id= "pp-calc-frete-btn" style="background:var(--brown); color:white; border:none; padding:0 12px; border-radius:8px; cursor:pointer; font-weight:600;">Calcular</button>
         </div>
         <div id="pp-frete-results" style="margin-top:12px; display:${selectedCep ? 'block' : 'none'};"></div>
       </div>
 
       <div class="pp-actions">
         <button class="pp-btn-sacola add-btn" data-product-id="${p.id}">🛍️ Adicionar à sacola</button>
-        <button class="pp-btn-comprar" onclick="window.comprarAgoraRapido(${p.id})">💳 Comprar agora</button>
+        <button class="quick-buy-btn pp-btn-comprar" data-product-id="${p.id}"> 💳 Comprar agora </button>
       </div>
     `;
   }
@@ -1072,19 +1072,52 @@ if (filterTabs) {
 }
 
 // Listener Global para adicionar produtos e interações (funciona na Home e na página individual)
+// ==========================================
+// LISTENER GLOBAL (Resolve CSP e Lógica de Compra)
+// ==========================================
 document.body.addEventListener('click', (e) => {
+  // 1. Botão "Comprar Agora" (Direto para o Checkout)
+  const quickBtn = e.target.closest('.quick-buy-btn');
+  if (quickBtn) {
+    const id = parseInt(quickBtn.dataset.product-id, 10);
+    const p = PRODUCTS.find(x => x.id === id);
+    if (!p) return;
+
+    // Apenas adiciona se não estiver no carrinho (não aumenta a qtd)
+    const existing = cart.find(x => x.id === id);
+    if (!existing) {
+      cart.push({ id: p.id, qty: 1, name: p.name, price: p.price, image: p.image });
+      saveCart();
+      refreshUI();
+      renderCartBody();
+    }
+    
+    // Abre o checkout direto sem animações de "adicionado"
+    window.openCheckoutDirectly();
+    return;
+  }
+
+  // 2. Troca de Mídia (Miniaturas)
+  const thumb = e.target.closest('.pp-thumb');
+  if (thumb) {
+    window.switchMedia(thumb.dataset.type, thumb.dataset.src, thumb);
+    return;
+  }
+
+  // 3. Calcular Frete na página do produto
+  if (e.target.id === 'pp-calc-frete-btn') {
+    window.calculateProductFrete();
+    return;
+  }
+
+  // 4. Botão Personalizado
   const customBtn = e.target.closest('.custom-btn');
   if (customBtn) {
     sendCustomOrderToWhatsApp(parseInt(customBtn.dataset.customId, 10));
     return;
   }
 
-  const videoBtn = e.target.closest('.video-btn');
-  if (videoBtn) {
-    openProductVideo(videoBtn.dataset.videoSrc, videoBtn.dataset.videoName, videoBtn.dataset.videoPoster);
-    return;
-  }
-
+  // 5. Botão Adicionar à Sacola (Com animação e confete)
   const btn = e.target.closest('.add-btn');
   if (!btn) return;
 
@@ -1107,9 +1140,7 @@ document.body.addEventListener('click', (e) => {
   
   const rect = btn.getBoundingClientRect();
   createConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
-  createFloatingCounter(rect.left + rect.width / 2 - 15, rect.top + rect.height / 2 - 30, 1);
   
-  // Abre o carrinho automaticamente se estiver na página do produto único
   if(document.getElementById('single-product-container')) {
      openCart();
   }
