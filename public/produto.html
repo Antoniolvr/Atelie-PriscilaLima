@@ -75,6 +75,58 @@
     </div>
   </aside>
 
+  <div class="modal-bg" id="checkout-modal">
+  <div class="modal-box">
+    <div class="modal-hd">
+      <h3>Finalizar Pedido</h3>
+      <button class="x-btn" id="checkout-close-btn">✕</button>
+    </div>
+
+    <p class="sum-title">📋 Resumo do Pedido</p>
+    <div id="sum-items"></div>
+
+    <div style="padding: 0.8rem; background: rgba(216,182,185,.12); border-radius: 12px; margin: 1rem 0; font-size: 0.88rem;">
+      <p style="margin: 0 0 0.4rem 0; color: var(--brown-mid);"><strong>CEP:</strong> <span id="modal-cep-display"></span></p>
+      <p style="margin: 0; color: var(--brown-mid);"><strong>Frete:</strong> <span id="modal-frete-display"></span></p>
+    </div>
+
+    <form id="checkout-form" class="form-grid">
+      <div class="field full">
+        <label for="payment-method">Forma de pagamento</label>
+        <select id="payment-method" name="paymentMethod" required>
+          <option value="avista">PIX</option>
+          <option value="cartao">Cartão</option>
+        </select>
+      </div>
+
+      <div class="field full">
+        <label for="customer-name">Nome ou Apelido</label>
+        <input id="customer-name" name="name" required maxlength="120" autocomplete="name">
+      </div>
+      
+      <div class="field full">
+        <label for="customer-note">Observações</label>
+        <textarea id="customer-note" name="note" placeholder="Opcional" maxlength="500"></textarea>
+      </div>
+
+      <div class="field full" style="display: flex; align-items: start; gap: 8px; margin-top: 10px;">
+        <input type="checkbox" id="lgpd-consent" name="lgpdConsent" required style="width: auto; margin-top: 4px; cursor: pointer;">
+        <label for="lgpd-consent" style="font-size: 0.85rem; color: var(--brown-mid); font-weight: normal; line-height: 1.4; cursor: pointer;">
+          Concordo em enviar os dados básicos deste pedido via WhatsApp para o Ateliê Priscila Lima.
+        </label>
+      </div>
+      </form>
+
+    <div class="sum-total"><span>Total Final</span><span id="sum-total-val">R$ 0,00</span></div>
+
+    <div class="checkout-wrap">
+      <p class="checkout-note">📲 Ao clicar abaixo, o pedido será enviado direto para o WhatsApp da loja</p>
+      <p class="status-msg" id="payment-status"></p>
+      <button class="btn-pri" id="whatsapp-checkout-btn" type="button">Enviar pedido no WhatsApp</button>
+    </div>
+  </div>
+</div>
+
   <div class="toast" id="toast"></div>
   <script src="/script.js"></script>
 </body>
