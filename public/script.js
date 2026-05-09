@@ -870,58 +870,93 @@ document.getElementById('cart-body').addEventListener('click', (e) => {
   renderCartBody();
 });
 
-document.getElementById('cart-toggle-btn').addEventListener('click', openCart);
-document.getElementById('cart-close-btn').addEventListener('click', closeCart);
-document.getElementById('cart-overlay').addEventListener('click', closeCart);
+// ==========================================
+// EVENT LISTENERS SEGUROS (Evitam o erro "Cannot read properties of null")
+// ==========================================
 
-document.getElementById('checkout-btn').addEventListener('click', () => {
-  if (!cart.length) return;
-  if (!selectedFrete && !selectedCep) {
-    showToast('Selecione uma opção de frete antes de continuar.');
-    return;
-  }
-  
-  document.getElementById('cart-sidebar').classList.remove('open');
-  document.getElementById('cart-overlay').classList.remove('open');
-  
-  setPaymentStatus('');
-  
-  document.getElementById('modal-cep-display').textContent = selectedCep || 'Não informado';
-  if (selectedFrete) {
-    if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
-      document.getElementById('modal-frete-display').textContent = selectedFrete.name;
-    } else {
-      document.getElementById('modal-frete-display').textContent = `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+const cartToggle = document.getElementById('cart-toggle-btn');
+if (cartToggle) cartToggle.addEventListener('click', openCart);
+
+const cartClose = document.getElementById('cart-close-btn');
+if (cartClose) cartClose.addEventListener('click', closeCart);
+
+const cartOverlayEl = document.getElementById('cart-overlay');
+if (cartOverlayEl) cartOverlayEl.addEventListener('click', closeCart);
+
+const checkoutBtn = document.getElementById('checkout-btn');
+if (checkoutBtn) {
+  checkoutBtn.addEventListener('click', () => {
+    if (!cart.length) return;
+    if (!selectedFrete && !selectedCep) {
+      showToast('Selecione uma opção de frete antes de continuar.');
+      return;
     }
-  }
-  
-  document.getElementById('checkout-modal').classList.add('open');
-  updateCheckoutSummary();
-});
-
-document.getElementById('checkout-close-btn').addEventListener('click', () => {
-  document.getElementById('checkout-modal').classList.remove('open');
-});
-
-document.getElementById('checkout-modal').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('open');
-});
-
-document.getElementById('video-close-btn').addEventListener('click', closeProductVideo);
-
-document.getElementById('video-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeProductVideo();
-});
-
-document.getElementById('payment-method').addEventListener('change', updateCheckoutSummary);
-document.getElementById('whatsapp-checkout-btn').addEventListener('click', sendOrderToWhatsApp);
-
-const btnTrocarFrete = document.getElementById('btn-trocar-frete');
-if (btnTrocarFrete) {
-  btnTrocarFrete.addEventListener('click', trocarFrete);
+    
+    const cartSide = document.getElementById('cart-sidebar');
+    if (cartSide) cartSide.classList.remove('open');
+    
+    if (cartOverlayEl) cartOverlayEl.classList.remove('open');
+    
+    setPaymentStatus('');
+    
+    const cepDisplay = document.getElementById('modal-cep-display');
+    if (cepDisplay) cepDisplay.textContent = selectedCep || 'Não informado';
+    
+    const freteDisplay = document.getElementById('modal-frete-display');
+    if (freteDisplay && selectedFrete) {
+      if (selectedFrete.name === 'Cidades vizinhas - Valores a combinar') {
+        freteDisplay.textContent = selectedFrete.name;
+      } else {
+        freteDisplay.textContent = `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+      }
+    }
+    
+    const checkModal = document.getElementById('checkout-modal');
+    if (checkModal) checkModal.classList.add('open');
+    
+    updateCheckoutSummary();
+  });
 }
 
+const checkoutCloseBtn = document.getElementById('checkout-close-btn');
+if (checkoutCloseBtn) {
+  checkoutCloseBtn.addEventListener('click', () => {
+    const checkModal = document.getElementById('checkout-modal');
+    if (checkModal) checkModal.classList.remove('open');
+  });
+}
+
+const checkModalBg = document.getElementById('checkout-modal');
+if (checkModalBg) {
+  checkModalBg.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+}
+
+const videoClose = document.getElementById('video-close-btn');
+if (videoClose) videoClose.addEventListener('click', closeProductVideo);
+
+const videoModalBg = document.getElementById('video-modal');
+if (videoModalBg) {
+  videoModalBg.addEventListener('click', function(e) {
+    if (e.target === this) closeProductVideo();
+  });
+}
+
+const payMethod = document.getElementById('payment-method');
+if (payMethod) payMethod.addEventListener('change', updateCheckoutSummary);
+
+const zapBtn = document.getElementById('whatsapp-checkout-btn');
+if (zapBtn) zapBtn.addEventListener('click', sendOrderToWhatsApp);
+
+const btnTrocarFreteEx = document.getElementById('btn-trocar-frete');
+if (btnTrocarFreteEx) {
+  btnTrocarFreteEx.addEventListener('click', trocarFrete);
+}
+
+// ==========================================
 // INICIALIZAÇÃO DEPENDENDO DA TELA
+// ==========================================
 const grid = document.getElementById('products-grid');
 if (grid) {
   renderProducts(); 
