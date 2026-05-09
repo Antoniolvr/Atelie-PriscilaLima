@@ -712,9 +712,9 @@ function renderSingleProduct() {
       </div>`;
   }
 
-  container.innerHTML = `
-    <div class="pp-image-col" style="background:${safeColor}">
-      ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `<img src="${safeImage}" alt="${safeName}">`}
+ container.innerHTML = `
+    <div class="pp-image-col" id="zoom-container" style="background:${safeColor}; position: relative; overflow: hidden;">
+      ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `<img id="zoom-img" src="${safeImage}" alt="${safeName}" style="width: 100%; max-height: 500px; object-fit: contain; mix-blend-mode: multiply; will-change: transform;">`}
     </div>
     
     <div class="pp-info-col">
@@ -731,8 +731,43 @@ function renderSingleProduct() {
       ${priceHtml}
     </div>
   `;
-}
 
+  // ==========================================
+  // 🔍 LÓGICA DO ZOOM NA IMAGEM (ESTILO LUPA)
+  // ==========================================
+  const zoomContainer = document.getElementById('zoom-container');
+  const zoomImg = document.getElementById('zoom-img');
+
+  if (zoomContainer && zoomImg) {
+    zoomContainer.style.cursor = 'zoom-in';
+    
+    // Suaviza a entrada e saída do zoom
+    zoomImg.style.transition = 'transform 0.15s ease-out';
+    
+    zoomContainer.addEventListener('mousemove', (e) => {
+      // Pega o tamanho e posição exata da caixa da imagem na tela
+      const rect = zoomContainer.getBoundingClientRect();
+      
+      // Calcula onde o mouse está dentro da caixa
+      const x = e.clientX - rect.left; 
+      const y = e.clientY - rect.top;  
+      
+      // Converte para porcentagem (%)
+      const xPercent = (x / rect.width) * 100;
+      const yPercent = (y / rect.height) * 100;
+      
+      // Move o centro da imagem para onde o mouse está e dá o Zoom de 2.5x
+      zoomImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+      zoomImg.style.transform = 'scale(2.5)'; 
+    });
+
+    zoomContainer.addEventListener('mouseleave', () => {
+      // Quando tirar o mouse, volta a imagem ao normal
+      zoomImg.style.transformOrigin = 'center center';
+      zoomImg.style.transform = 'scale(1)';
+    });
+  }
+}
 // EVENT LISTENERS GLOBAIS
 
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
