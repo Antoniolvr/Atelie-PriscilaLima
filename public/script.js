@@ -302,7 +302,7 @@ function createFloatingCounter(x, y, qty) {
 
 function setPaymentStatus(msg) {
   const el = document.getElementById('payment-status');
-  el.textContent = msg || '';
+  if (el) el.textContent = msg || '';
 }
 
 function refreshUI() {
@@ -517,14 +517,20 @@ function openProductVideo(src, name, poster) {
 function updateCheckoutSummary() {
   const paymentMethod = getPaymentMethod();
 
-  document.getElementById('sum-items').innerHTML = cart.map(x => {
-    const unitPrice = getUnitPriceByMethod(x.price, paymentMethod);
-    const subtotal  = unitPrice * x.qty;
-    const safeName  = escapeHtml(x.name);
-    return `<div class="sum-row"><span>${safeName} × ${x.qty}</span><span>R$ ${fmt(subtotal)}</span></div>`;
-  }).join('');
+  const sumItems = document.getElementById('sum-items');
+  if (sumItems) {
+    sumItems.innerHTML = cart.map(x => {
+      const unitPrice = getUnitPriceByMethod(x.price, paymentMethod);
+      const subtotal  = unitPrice * x.qty;
+      const safeName  = escapeHtml(x.name);
+      return `<div class="sum-row"><span>${safeName} × ${x.qty}</span><span>R$ ${fmt(subtotal)}</span></div>`;
+    }).join('');
+  }
 
-  document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotalWithFrete(paymentMethod));
+  const sumTotalVal = document.getElementById('sum-total-val');
+  if (sumTotalVal) {
+    sumTotalVal.textContent = 'R$ ' + fmt(getTotalWithFrete(paymentMethod));
+  }
 }
 
 function getCustomerData() {
@@ -631,17 +637,29 @@ function sendCustomOrderToWhatsApp(productId) {
 
 function applyFrete(price, name) {
   selectedFrete = { price: Number(price), name: name };
-  selectedCep = document.getElementById('cep-input').value;
   
-  document.getElementById('frete-selected').style.display = 'block';
-  document.getElementById('frete-selected-text').textContent =
-    `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
+  const ppCepInput = document.getElementById('pp-cep-input');
+  const cepInput = document.getElementById('cep-input');
+  
+  if (ppCepInput && ppCepInput.value) {
+    selectedCep = ppCepInput.value.replace(/\D/g, '');
+  } else if (cepInput && cepInput.value) {
+    selectedCep = cepInput.value.replace(/\D/g, '');
+  }
+  
+  const fs = document.getElementById('frete-selected');
+  if (fs) fs.style.display = 'block';
+  
+  const fst = document.getElementById('frete-selected-text');
+  if (fst) fst.textContent = `${name}${name !== 'Cidades vizinhas - Valores a combinar' ? ' - R$ ' + fmt(price) : ''}`;
 
   const lista = document.getElementById('frete-options');
-  lista.style.transition = "all 0.3s ease";
-  lista.style.maxHeight = "0px";
-  lista.style.opacity = "0";
-  lista.style.overflow = "hidden";
+  if (lista) {
+    lista.style.transition = "all 0.3s ease";
+    lista.style.maxHeight = "0px";
+    lista.style.opacity = "0";
+    lista.style.overflow = "hidden";
+  }
 
   refreshUI();
   updateCheckoutSummary();
@@ -728,7 +746,7 @@ window.switchMedia = function(type, src, element) {
   }
 };
 
-// Nova função para calcular frete diretamente na página do produto
+// Nova função para calcular frete diretamente na página do produto COM SELEÇÃO
 window.calculateProductFrete = async function() {
   const input = document.getElementById('pp-cep-input');
   const cep = input.value.replace(/\D/g, '');
@@ -742,6 +760,10 @@ window.calculateProductFrete = async function() {
   // Salva na sessão para não pedir novamente
   sessionStorage.setItem('atelie_session_cep', cep);
   selectedCep = cep;
+
+  // Sincroniza o CEP do carrinho invisível
+  const cartCep = document.getElementById('cep-input');
+  if (cartCep) cartCep.value = cep;
 
   resultsDiv.innerHTML = '<div style="margin-top:10px; color:var(--rose-dark); font-size:0.85rem;"><span class="loading-spinner"></span> Calculando...</div>';
   resultsDiv.style.display = 'block';
@@ -765,12 +787,33 @@ window.calculateProductFrete = async function() {
       { company: 'Ateliê', name: 'Cidades vizinhas', price: 0, delivery_time: 0 }
     ];
 
-    resultsDiv.innerHTML = allFretes.map(f => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(216,182,185,.2); font-size:0.88rem;">
-        <span style="color:var(--brown);"><strong>${f.company}</strong> ${f.name}</span>
+    // 🟢 AQUI ESTÁ A MÁGICA: Adicionando os botões Radio (Bolinhas de seleção)
+    resultsDiv.innerHTML = allFretes.map((f, i) => {
+      // Marca o primeiro por padrão, ou o que já estava selecionado antes
+      const isChecked = (selectedFrete && selectedFrete.name === (f.company + ' ' + f.name)) || (!selectedFrete && i === 0) ? 'checked' : '';
+      
+      return `
+      <label style="display:flex; justify-content:space-between; align-items:center; padding:10px 8px; border-bottom:1px solid rgba(216,182,185,.2); font-size:0.88rem; cursor:pointer;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <input type="radio" name="ppFreteRadio" value="${f.price}" data-name="${f.company} ${f.name}" style="accent-color: var(--rose-dark); transform: scale(1.1); cursor:pointer;" ${isChecked}>
+          <span style="color:var(--brown);"><strong>${f.company}</strong> ${f.name}</span>
+        </div>
         <span style="color:var(--rose-dark); font-weight:700;">${f.price > 0 ? 'R$ ' + fmt(f.price) : 'A combinar'}</span>
-      </div>
-    `).join('') + `<p style="font-size:0.7rem; color:var(--brown-light); margin-top:8px;">* Prazos e valores são estimativas.</p>`;
+      </label>
+    `}).join('') + `<p style="font-size:0.7rem; color:var(--brown-light); margin-top:8px;">* Prazos e valores são estimativas.</p>`;
+
+    // Aplica automaticamente o frete que veio marcado como 'checked'
+    const checkedRadio = resultsDiv.querySelector('input[name="ppFreteRadio"]:checked');
+    if (checkedRadio) {
+       applyFrete(checkedRadio.value, checkedRadio.dataset.name);
+    }
+
+    // Quando o cliente clicar em outra bolinha, atualiza o frete no sistema
+    resultsDiv.querySelectorAll('input[name="ppFreteRadio"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        applyFrete(e.target.value, e.target.dataset.name);
+      });
+    });
 
   } catch (e) {
     resultsDiv.innerHTML = '<p style="color:red; font-size:0.8rem;">Erro de conexão.</p>';
