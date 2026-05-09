@@ -124,30 +124,30 @@ const PRODUCTS = [
     desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.'
   },
   {
-  id: 10,
-  sku: 'CENTRO-MESA-FLORAL-011',
-  name: 'Centro de Mesa Tulipas Rosa com Base Cru',
-  cat: 'decoracao',
-  price: 40.00,
-  image: '/imagens/produto10.png',
-  video: '/videos/produto10.mp4',
-  badge: 'Novo',
-  color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
-  measure: 'Aprox. 40cm x 40cm',
-  desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.'
-},
-{
-  id: 11,
-  sku: 'CHAVEIRO-CORACAO-012',
-  name: 'Chaveiro Coração Vermelho em Crochê',
-  cat: 'decoracao',
-  price: 4.00,
-  image: '/imagens/produto11.png',
-  badge: 'Fofo',
-  color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
-  measure: 'Aprox. 5cm x 6cm',
-  desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.'
-},
+    id: 10,
+    sku: 'CENTRO-MESA-FLORAL-011',
+    name: 'Centro de Mesa Tulipas Rosa com Base Cru',
+    cat: 'decoracao',
+    price: 40.00,
+    image: '/imagens/produto10.png',
+    video: '/videos/produto10.mp4',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
+    measure: 'Aprox. 40cm x 40cm',
+    desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.'
+  },
+  {
+    id: 11,
+    sku: 'CHAVEIRO-CORACAO-012',
+    name: 'Chaveiro Coração Vermelho em Crochê',
+    cat: 'decoracao',
+    price: 4.00,
+    image: '/imagens/produto11.png',
+    badge: 'Fofo',
+    color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
+    measure: 'Aprox. 5cm x 6cm',
+    desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.'
+  },
   {
     id: 12,
     sku: 'PERSONALIZADO-008',
@@ -348,7 +348,7 @@ function renderProducts() {
 
     return `
     <div class="product-card" style="animation-delay:${i * 0.08}s; display: flex; flex-direction: column;">
-      <div class="product-img" style="background:${safeColor}">
+      <a href="/produto.html?id=${p.id}" class="product-img" style="background:${safeColor}; text-decoration: none; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 220px;">
         ${
           p.custom
             ? `<div class="custom-visual">
@@ -359,11 +359,13 @@ function renderProducts() {
             : `<img src="${safeImage}" class="product-image" alt="${safeName}">`
         }
         ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
-      </div>
+      </a>
 
       <div class="product-info" style="display: flex; flex-direction: column; flex: 1;">
         <p class="product-cat">${safeCat}</p>
-        <h3 class="product-name">${safeName}</h3>
+        <a href="/produto.html?id=${p.id}" style="text-decoration: none; color: inherit;">
+          <h3 class="product-name">${safeName}</h3>
+        </a>
         ${safeMeasure ? `<p class="product-measure">Medida: ${safeMeasure}</p>` : ''}
         <p class="product-desc">${safeDesc}</p>
 
@@ -525,7 +527,6 @@ function updateCheckoutSummary() {
   document.getElementById('sum-total-val').textContent = 'R$ ' + fmt(getTotalWithFrete(paymentMethod));
 }
 
-// ATUALIZADO: Buscar apenas dados que permaneceram (sem email, telefone, endereço) e checar LGPD
 function getCustomerData() {
   const form = document.getElementById('checkout-form');
   const data = new FormData(form);
@@ -537,7 +538,6 @@ function getCustomerData() {
   };
 }
 
-// ATUALIZADO: Validação focada no Nome e no consentimento da LGPD
 function validateCheckout() {
   if (!cart.length) { showToast('Seu carrinho está vazio.'); return false; }
   if (!selectedFrete && !selectedCep) { showToast('Selecione uma opção de frete.'); return false; }
@@ -561,7 +561,6 @@ function getPaymentMethodLabel(paymentMethod) {
   return paymentMethod === 'cartao' ? 'Cartão em até 6x sem juros' : 'PIX';
 }
 
-// ATUALIZADO: Monta a mensagem sem os dados sensíveis removidos
 function buildWhatsAppMessage() {
   const customer      = getCustomerData();
   const paymentMethod = customer.paymentMethod;
@@ -660,6 +659,82 @@ function trocarFrete() {
   resumo.style.display = 'none';
 }
 
+// ==========================================
+// FUNÇÃO DA PÁGINA ÚNICA DE PRODUTO
+// ==========================================
+function renderSingleProduct() {
+  const container = document.getElementById('single-product-container');
+  if (!container) return; // Se não estiver na página do produto, ignora.
+
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get('id'), 10);
+  const p = PRODUCTS.find(x => x.id === id);
+
+  if (!p) {
+    container.innerHTML = '<div style="text-align:center; padding: 4rem; grid-column: 1/-1;"><h2>Produto não encontrado</h2><br><a href="/" class="btn-pri" style="text-decoration: none;">Voltar para a loja</a></div>';
+    return;
+  }
+
+  const safeName = escapeHtml(p.name);
+  const safeDesc = escapeHtml(p.desc);
+  const safeMeasure = escapeHtml(p.measure || '');
+  const safeCat = escapeHtml(CAT_LABELS[p.cat] || p.cat);
+  const safeColor = escapeHtml(p.color);
+  const safeImage = escapeHtml(p.image || '');
+  
+  document.title = `${p.name} — Ateliê Priscila Lima`;
+
+  let priceHtml = '';
+  if (p.custom) {
+    priceHtml = `
+      <div class="product-price">Sob encomenda</div>
+      <button class="add-btn custom-btn" data-custom-id="${p.id}" style="margin-top: 1.5rem; width: 100%;">
+        ${escapeHtml(p.buttonText || 'Solicitar')}
+      </button>`;
+  } else {
+    priceHtml = `
+      <div class="price-focus-box">
+        <div class="price-main-line">
+          <span class="price-main">R$ ${fmt(p.price)}</span>
+          <span class="pix-chip">PIX</span>
+        </div>
+        <div class="price-economy-badge" style="margin-bottom: 0.5rem;">💰 Economize R$ ${fmt(getCashSavings(p.price))}</div>
+        <div style="font-size:1.25rem; font-weight:700; color:#2e7d32; margin-top:0.5rem;">
+          💳 6x de R$ ${fmt(getInstallment(p.price))}
+        </div>
+        <div style="font-size:.85rem; color:var(--brown-mid);">sem juros no cartão</div>
+      </div>
+      
+      <div class="product-actions" style="margin-top: 2rem;">
+        <button class="add-btn" data-product-id="${p.id}" style="width: 100%; height: 60px; font-size: 1.1rem;">
+          🛍️ Adicionar ao Carrinho
+        </button>
+      </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="pp-image-col" style="background:${safeColor}">
+      ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `<img src="${safeImage}" alt="${safeName}">`}
+    </div>
+    
+    <div class="pp-info-col">
+      <div class="pp-breadcrumb">
+        <a href="/">Início</a> / <a href="/#produtos">${safeCat}</a> / <span style="color: var(--brown);">${safeName}</span>
+      </div>
+      <h1 class="pp-title">${safeName}</h1>
+      ${p.badge ? `<span class="product-badge" style="position: relative; top: 0; right: 0; display: inline-block; margin-bottom: 1rem;">${escapeHtml(p.badge)}</span>` : ''}
+      
+      ${safeMeasure ? `<p class="product-measure" style="font-size: 1rem;"><strong>Medida:</strong> ${safeMeasure}</p>` : ''}
+      
+      <div class="pp-desc">${safeDesc}</div>
+      
+      ${priceHtml}
+    </div>
+  `;
+}
+
+// EVENT LISTENERS GLOBAIS
+
 document.getElementById('calc-frete-btn').addEventListener('click', async () => {
   const cep = document.getElementById('cep-input').value.replace(/\D/g, '');
   const optionsDiv = document.getElementById('frete-options');
@@ -677,7 +752,6 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
 
     const fretes = await response.json();
 
-    // 🔒 PROTEÇÃO: Se a resposta não for uma lista (array), exibe o erro e interrompe para não travar!
     if (!Array.isArray(fretes)) {
       optionsDiv.innerHTML = "Não foi possível calcular o frete para este CEP (Erro interno).";
       return;
@@ -717,16 +791,20 @@ document.getElementById('calc-frete-btn').addEventListener('click', async () => 
   }
 });
 
-document.getElementById('filter-tabs').addEventListener('click', (e) => {
-  const btn = e.target.closest('.filter-btn');
-  if (!btn) return;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  activeFilter = btn.dataset.filter;
-  renderProducts();
-});
+const filterTabs = document.getElementById('filter-tabs');
+if (filterTabs) {
+  filterTabs.addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderProducts();
+  });
+}
 
-document.getElementById('products-grid').addEventListener('click', (e) => {
+// Listener Global para adicionar produtos e interações (funciona na Home e na página individual)
+document.body.addEventListener('click', (e) => {
   const customBtn = e.target.closest('.custom-btn');
   if (customBtn) {
     sendCustomOrderToWhatsApp(parseInt(customBtn.dataset.customId, 10));
@@ -735,11 +813,7 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
 
   const videoBtn = e.target.closest('.video-btn');
   if (videoBtn) {
-    openProductVideo(
-      videoBtn.dataset.videoSrc,
-      videoBtn.dataset.videoName,
-      videoBtn.dataset.videoPoster
-    );
+    openProductVideo(videoBtn.dataset.videoSrc, videoBtn.dataset.videoName, videoBtn.dataset.videoPoster);
     return;
   }
 
@@ -763,16 +837,14 @@ document.getElementById('products-grid').addEventListener('click', (e) => {
   showToast(`${p.name} adicionado!`);
   bumpBadge();
   
-  // 🎊 EFEITOS VISUAIS
   const rect = btn.getBoundingClientRect();
-  const btnCenterX = rect.left + rect.width / 2;
-  const btnCenterY = rect.top + rect.height / 2;
+  createConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  createFloatingCounter(rect.left + rect.width / 2 - 15, rect.top + rect.height / 2 - 30, 1);
   
-  // Confete
-  createConfetti(btnCenterX, btnCenterY);
-  
-  // Contador flutuante
-  createFloatingCounter(btnCenterX - 15, btnCenterY - 30, existing ? 1 : 1);
+  // Abre o carrinho automaticamente se estiver na página do produto único
+  if(document.getElementById('single-product-container')) {
+     openCart();
+  }
 });
 
 document.getElementById('cart-body').addEventListener('click', (e) => {
@@ -809,7 +881,6 @@ document.getElementById('checkout-btn').addEventListener('click', () => {
     return;
   }
   
-  // CORREÇÃO: Apenas esconde visualmente o carrinho, sem apagar os dados da memória
   document.getElementById('cart-sidebar').classList.remove('open');
   document.getElementById('cart-overlay').classList.remove('open');
   
@@ -850,5 +921,11 @@ if (btnTrocarFrete) {
   btnTrocarFrete.addEventListener('click', trocarFrete);
 }
 
-renderProducts();
+// INICIALIZAÇÃO DEPENDENDO DA TELA
+const grid = document.getElementById('products-grid');
+if (grid) {
+  renderProducts(); 
+}
+
+renderSingleProduct(); 
 refreshUI();
