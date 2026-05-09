@@ -621,7 +621,7 @@ function renderProducts() {
               <div class="price-focus-box" style="flex: 1; min-width: 100%;">
                 <div class="price-main-line">
                   <span class="price-main">R$ ${fmt(p.price)}</span>
-                  <span class="pix-chip">PIX</span>
+                  <span class="pix-chip">NO PIX</span>
                 </div>
                 <div class="price-economy-badge">💰 Economize R$ ${fmt(getCashSavings(p.price))}</div>
                 <div style="margin-top:.6rem">
