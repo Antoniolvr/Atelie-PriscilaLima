@@ -625,7 +625,7 @@ function renderProducts() {
                 </div>
                 <div class="price-economy-badge">💰 Economize R$ ${fmt(getCashSavings(p.price))}</div>
                 <div style="margin-top:.6rem">
-                  <div style="font-size:1.25rem;font-weight:700;color:#A9787D;display:flex;align-items:center;gap:.4rem;">
+                  <div style="font-size:1.25rem;font-weight:800;color:var(--brown);display:flex;align-items:center;gap:.4rem;">
                     💳ou R$ ${fmt(getCardPrice(p.price))} em 6x de R$ ${fmt(getInstallment(p.price))}
                   </div>
                   <div style="font-size:.75rem;color:var(--brown-mid);margin-top:.2rem;">
