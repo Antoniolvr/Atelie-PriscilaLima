@@ -216,7 +216,7 @@ function getTotalWithFrete(paymentMethod = 'avista') {
 let cart = [];
 let activeFilter = 'todos';
 let selectedFrete = null;
-let selectedCep = null;
+let selectedCep = sessionStorage.getItem('atelie_session_cep') ||null;
 let toastTimer = null;
 
 try {
@@ -702,6 +702,97 @@ window.comprarAgoraRapido = function(id) {
 };
 
 // ==========================================
+// FUNÇÕES AUXILIARES DA PÁGINA DO PRODUTO
+// ==========================================
+
+window.switchMedia = function(type, src, element) {
+  const img = document.getElementById('zoom-img');
+  const video = document.getElementById('viewer-video');
+  const container = document.getElementById('zoom-container');
+  
+  document.querySelectorAll('.pp-thumb').forEach(t => t.classList.remove('active'));
+  if(element) element.classList.add('active');
+
+  if (type === 'image') {
+    video.style.display = 'none';
+    video.pause();
+    img.style.display = 'block';
+    img.src = src;
+    container.style.cursor = 'zoom-in';
+  } else if (type === 'video') {
+    img.style.display = 'none';
+    video.style.display = 'block';
+    video.src = src;
+    video.play().catch(e => console.log(e));
+    container.style.cursor = 'default';
+  }
+};
+
+// Nova função para calcular frete diretamente na página do produto
+window.calculateProductFrete = async function() {
+  const input = document.getElementById('pp-cep-input');
+  const cep = input.value.replace(/\D/g, '');
+  const resultsDiv = document.getElementById('pp-frete-results');
+
+  if (cep.length !== 8) {
+    showToast("Digite um CEP válido");
+    return;
+  }
+
+  // Salva na sessão para não pedir novamente
+  sessionStorage.setItem('atelie_session_cep', cep);
+  selectedCep = cep;
+
+  resultsDiv.innerHTML = '<div style="margin-top:10px; color:var(--rose-dark); font-size:0.85rem;"><span class="loading-spinner"></span> Calculando...</div>';
+  resultsDiv.style.display = 'block';
+
+  try {
+    const response = await fetch("/api/frete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cep: cep, items: cart.length > 0 ? cart : [{ id: parseInt(new URLSearchParams(window.location.search).get('id')), qty: 1 }] })
+    });
+
+    const fretes = await response.json();
+    
+    if (!Array.isArray(fretes)) {
+      resultsDiv.innerHTML = '<p style="color:red; font-size:0.8rem; margin-top:10px;">Erro ao calcular frete.</p>';
+      return;
+    }
+
+    const allFretes = [
+      ...fretes,
+      { company: 'Ateliê', name: 'Cidades vizinhas', price: 0, delivery_time: 0 }
+    ];
+
+    resultsDiv.innerHTML = allFretes.map(f => `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid rgba(216,182,185,.2); font-size:0.88rem;">
+        <span style="color:var(--brown);"><strong>${f.company}</strong> ${f.name}</span>
+        <span style="color:var(--rose-dark); font-weight:700;">${f.price > 0 ? 'R$ ' + fmt(f.price) : 'A combinar'}</span>
+      </div>
+    `).join('') + `<p style="font-size:0.7rem; color:var(--brown-light); margin-top:8px;">* Prazos e valores são estimativas.</p>`;
+
+  } catch (e) {
+    resultsDiv.innerHTML = '<p style="color:red; font-size:0.8rem;">Erro de conexão.</p>';
+  }
+};
+
+window.comprarAgoraRapido = function(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  const existing = cart.find(x => x.id === id);
+  if (existing) {
+    existing.qty = Math.min(99, existing.qty + 1);
+  } else {
+    cart.push({ id: p.id, qty: 1, name: p.name, price: p.price, image: p.image });
+  }
+  saveCart();
+  refreshUI();
+  renderCartBody();
+  openCart();
+};
+
+// ==========================================
 // FUNÇÃO DA PÁGINA ÚNICA DE PRODUTO
 // ==========================================
 function renderSingleProduct() {
@@ -713,7 +804,7 @@ function renderSingleProduct() {
   const p = PRODUCTS.find(x => x.id === id);
 
   if (!p) {
-    container.innerHTML = '<div style="text-align:center; padding: 4rem; grid-column: 1/-1;"><h2>Produto não encontrado</h2><br><a href="/" class="btn-pri" style="text-decoration: none;">Voltar para a loja</a></div>';
+    container.innerHTML = '<div style="text-align:center; padding: 4rem;"><h2>Produto não encontrado</h2><br><a href="/" class="btn-pri">Voltar para a loja</a></div>';
     return;
   }
 
@@ -726,7 +817,6 @@ function renderSingleProduct() {
   
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
-  // 1. GERAÇÃO DA GALERIA DE FOTOS (ESQUERDA)
   const mediaHtml = `
     <div class="pp-media-gallery">
       <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
@@ -738,7 +828,7 @@ function renderSingleProduct() {
       ${!p.custom ? `
       <div class="pp-thumbnails">
         <div class="pp-thumb active" onclick="window.switchMedia('image', '${safeImage}', this)" style="background:${safeColor}">
-          <img src="${safeImage}" alt="Foto 1">
+          <img src="${safeImage}" alt="Foto Principal">
         </div>
         ${p.video ? `
         <div class="pp-thumb" onclick="window.switchMedia('video', '${escapeHtml(p.video)}', this)" style="position:relative; background:#000;">
@@ -751,104 +841,76 @@ function renderSingleProduct() {
     </div>
   `;
 
-  // 2. GERAÇÃO DA CAIXA DE COMPRA (DIREITA)
   let buyBoxHtml = `
     <div class="pp-buy-box">
-      <div class="pp-breadcrumb">
-        <a href="/">Início</a> / <a href="/#produtos">${safeCat}</a>
-      </div>
+      <div class="pp-breadcrumb"><a href="/">Início</a> / <a href="/#produtos">${safeCat}</a></div>
       <h1 class="pp-title">${safeName}</h1>
-      ${p.badge ? `<span class="product-badge" style="position: relative; top: 0; right: 0; display: inline-block; margin-bottom: 1rem;">${escapeHtml(p.badge)}</span>` : ''}
+      ${p.badge ? `<span class="product-badge" style="position:relative; margin-bottom:1rem; display:inline-block;">${escapeHtml(p.badge)}</span>` : ''}
   `;
 
   if (p.custom) {
     buyBoxHtml += `
-      <div class="product-price" style="margin-top: 1rem;">Sob encomenda</div>
-      <button class="pp-btn-comprar custom-btn" data-custom-id="${p.id}" style="margin-top: 1.5rem;">
-        ${escapeHtml(p.buttonText || 'Solicitar Orçamento no WhatsApp')}
-      </button>
+      <div class="product-price" style="margin-top:1rem;">Sob encomenda</div>
+      <button class="pp-btn-comprar custom-btn" data-custom-id="${p.id}" style="margin-top:1.5rem;">Solicitar Orçamento no WhatsApp</button>
     `;
   } else {
     buyBoxHtml += `
-      <div class="price-focus-box" style="margin-top: 1.5rem;">
-        <div style="font-size: 0.95rem; color: var(--brown-light); text-decoration: line-through;">R$ ${fmt(getCardPrice(p.price))}</div>
-        <div class="price-main-line" style="margin-top: 4px;">
-          <span class="price-main" style="font-size: 2.4rem;">R$ ${fmt(p.price)}</span>
-          <span style="font-size: 1rem; color: var(--rose-dark); font-weight: bold; margin-left: 8px;">no PIX</span>
-          <span class="price-economy-badge" style="margin-left: auto; padding: 4px 8px; font-size: 0.75rem;">-${CARD_FEE_PERCENT}% OFF</span>
+      <div class="price-focus-box" style="margin-top:1.5rem;">
+        <div style="font-size:0.9rem; color:var(--brown-light); text-decoration:line-through;">R$ ${fmt(getCardPrice(p.price))}</div>
+        <div class="price-main-line">
+          <span class="price-main" style="font-size:2.2rem;">R$ ${fmt(p.price)}</span>
+          <span style="font-size:0.9rem; color:var(--rose-dark); font-weight:700; margin-left:8px;">no PIX</span>
         </div>
-        <div style="font-size:1.05rem; color:#2e7d32; margin-top:0.8rem;">
-          ou R$ ${fmt(getCardPrice(p.price))} em até <strong>6x de R$ ${fmt(getInstallment(p.price))}</strong> sem juros
-        </div>
+        <div style="font-size:1rem; color:#2e7d32; margin-top:0.5rem;">6x de R$ ${fmt(getInstallment(p.price))} sem juros</div>
       </div>
       
       <div class="pp-frete-box">
-        <p style="margin:0 0 8px 0; font-weight:600; color:var(--brown); font-size: 0.95rem;">📍 Calcular frete e prazo</p>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="pp-cep-input" placeholder="00000-000" maxlength="9" style="flex:1; padding: 12px; border-radius: 8px; border: 1px solid rgba(169,120,125,.3); font-size: 0.95rem;">
-          <button onclick="document.getElementById('cep-input').value = document.getElementById('pp-cep-input').value; openCart(); setTimeout(() => document.getElementById('calc-frete-btn').click(), 400);" style="background: var(--brown); color: white; border: none; padding: 0 15px; border-radius: 8px; cursor: pointer; font-weight: 600;">Calcular</button>
+        <p style="margin:0 0 8px 0; font-weight:600; color:var(--brown); font-size:0.9rem;">🚚 Calcular frete e prazo</p>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="pp-cep-input" placeholder="00000-000" maxlength="9" value="${selectedCep || ''}" style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(169,120,125,.3);">
+          <button onclick="window.calculateProductFrete()" style="background:var(--brown); color:white; border:none; padding:0 12px; border-radius:8px; cursor:pointer; font-weight:600;">Calcular</button>
         </div>
+        <div id="pp-frete-results" style="margin-top:12px; display:${selectedCep ? 'block' : 'none'};"></div>
       </div>
 
       <div class="pp-actions">
-        <button class="pp-btn-sacola add-btn" data-product-id="${p.id}">
-          🛍️ Adicionar à sacola
-        </button>
-        <button class="pp-btn-comprar" onclick="window.comprarAgoraRapido(${p.id})">
-          💳 Comprar agora
-        </button>
+        <button class="pp-btn-sacola add-btn" data-product-id="${p.id}">🛍️ Adicionar à sacola</button>
+        <button class="pp-btn-comprar" onclick="window.comprarAgoraRapido(${p.id})">💳 Comprar agora</button>
       </div>
     `;
   }
   buyBoxHtml += `</div>`;
 
-  // 3. GERAÇÃO DA DESCRIÇÃO (EMBAIXO)
-  const bottomHtml = `
+  container.innerHTML = `
+    <div class="pp-top-section">${mediaHtml}${buyBoxHtml}</div>
     <div class="pp-bottom-section">
       <h2 class="pp-bottom-title">Descrição e ficha técnica</h2>
-      <div style="font-size: 0.9rem; color: var(--brown-light); margin-bottom: 1.5rem;">Código do Produto: ${p.sku || 'SKU-'+p.id}</div>
+      <div style="font-size:0.85rem; color:var(--brown-light); margin-bottom:1rem;">SKU: ${p.sku || 'SKU-'+p.id}</div>
       <div class="pp-desc-content">
         <p>${safeDesc}</p>
-        ${safeMeasure ? `<p style="margin-top: 1rem;"><strong>📏 Medidas:</strong> ${safeMeasure}</p>` : ''}
-        <p style="margin-top: 0.5rem;"><strong>🧶 Material:</strong> Fios de alta qualidade, produção 100% artesanal.</p>
+        ${safeMeasure ? `<p style="margin-top:1rem;"><strong>📏 Medidas:</strong> ${safeMeasure}</p>` : ''}
+        <p style="margin-top:0.5rem;"><strong>🧶 Material:</strong> Fios de alta qualidade, 100% artesanal.</p>
       </div>
     </div>
   `;
 
-  // Junta tudo no container
-  container.innerHTML = `
-    <div class="pp-top-section">
-      ${mediaHtml}
-      ${buyBoxHtml}
-    </div>
-    ${bottomHtml}
-  `;
+  // Se já houver CEP na sessão, calcula automaticamente ao abrir o produto
+  if (selectedCep) {
+    window.calculateProductFrete();
+  }
 
-  // ==========================================
-  // 🔍 LÓGICA DO ZOOM MANTIDA NA FOTO PRINCIPAL
-  // ==========================================
+  // Lógica do Zoom
   const zoomContainer = document.getElementById('zoom-container');
   const zoomImg = document.getElementById('zoom-img');
-
   if (zoomContainer && zoomImg) {
-    zoomContainer.style.cursor = 'zoom-in';
-    zoomImg.style.transition = 'transform 0.15s ease-out';
-    
     zoomContainer.addEventListener('mousemove', (e) => {
-      // Se o display for none (ex: vídeo tocando), ignora o zoom
       if(zoomImg.style.display === 'none') return; 
-
       const rect = zoomContainer.getBoundingClientRect();
-      const x = e.clientX - rect.left; 
-      const y = e.clientY - rect.top;  
-      
-      const xPercent = (x / rect.width) * 100;
-      const yPercent = (y / rect.height) * 100;
-      
+      const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+      const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
       zoomImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
       zoomImg.style.transform = 'scale(2.5)'; 
     });
-
     zoomContainer.addEventListener('mouseleave', () => {
       zoomImg.style.transformOrigin = 'center center';
       zoomImg.style.transform = 'scale(1)';
