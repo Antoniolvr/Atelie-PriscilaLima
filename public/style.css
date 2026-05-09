@@ -1267,3 +1267,84 @@ footer{
   .video-btn{min-width:100px;padding:0 .85rem;font-size:.78rem}
   .add-btn{min-width:140px;height:46px;font-size:.88rem}
 }
+
+/* =======================================
+   ESTILOS DA PÁGINA ÚNICA DE PRODUTO 
+======================================== */
+.product-page-main {
+  max-width: 1100px;
+  margin: 4rem auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  min-height: 60vh;
+}
+
+.pp-image-col {
+  border-radius: 24px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  box-shadow: var(--shadow);
+}
+
+.pp-image-col img {
+  width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 0.3s;
+}
+
+.pp-image-col:hover img {
+  transform: scale(1.05);
+}
+
+.pp-info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pp-breadcrumb {
+  font-size: 0.85rem;
+  color: var(--brown-mid);
+  margin-bottom: 1.5rem;
+}
+
+.pp-breadcrumb a {
+  color: var(--rose-dark);
+  text-decoration: none;
+}
+
+.pp-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.4rem;
+  color: var(--brown);
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+
+.pp-desc {
+  font-size: 1.05rem;
+  color: var(--brown-mid);
+  line-height: 1.8;
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  border-top: 1px solid rgba(216,182,185,.3);
+  border-bottom: 1px solid rgba(216,182,185,.3);
+  padding: 1.5rem 0;
+}
+
+@media(max-width: 850px) {
+  .product-page-main {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin: 2rem auto;
+  }
+  .pp-image-col { padding: 1.5rem; }
+  .pp-title { font-size: 2rem; }
+}
