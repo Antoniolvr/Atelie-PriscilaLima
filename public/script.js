@@ -1079,7 +1079,8 @@ document.body.addEventListener('click', (e) => {
   // 1. Botão "Comprar Agora" (Direto para o Checkout)
   const quickBtn = e.target.closest('.quick-buy-btn');
   if (quickBtn) {
-    const id = parseInt(quickBtn.dataset.product-id, 10);
+    // CORREÇÃO AQUI: mudamos de dataset.product-id para dataset.productId
+    const id = parseInt(quickBtn.dataset.productId, 10); 
     const p = PRODUCTS.find(x => x.id === id);
     if (!p) return;
 
