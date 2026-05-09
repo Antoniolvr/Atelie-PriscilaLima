@@ -414,9 +414,9 @@ function renderProducts() {
                     </button>
                   ` : ''}
                   
-                  <button class="add-btn" data-product-id="${p.id}" style="position: relative; flex: 1;">
-                    🛍️ Compre agora
-                  </button>
+               <button class="pp-btn-comprar" onclick="window.comprarAgoraRapido(${p.id})" style="position: relative; flex: 1;">
+  🛍️ Compre agora
+</button>
                 </div>
               `
           }
@@ -833,6 +833,47 @@ window.comprarAgoraRapido = function(id) {
   refreshUI();
   renderCartBody();
   openCart();
+
+  // MUDANÇA AQUI: Em vez de openCart(), chamamos o checkout direto
+  window.openCheckoutDirectly();
+};
+
+window.openCheckoutDirectly = function() {
+  // 1. Fecha o carrinho e o overlay se estiverem abertos
+  const cartSide = document.getElementById('cart-sidebar');
+  if (cartSide) cartSide.classList.remove('open');
+  
+  const cartOverlayEl = document.getElementById('cart-overlay');
+  if (cartOverlayEl) cartOverlayEl.classList.remove('open');
+
+  // 2. Validação amigável: Se não tem frete, precisamos que o cliente calcule
+  // para que o valor total no modal esteja correto.
+  if (!selectedFrete && !selectedCep) {
+    openCart(); // Abre o carrinho para ele ver o campo de CEP
+    showToast('Por favor, informe seu CEP para calcular o total.');
+    return;
+  }
+
+  // 3. Tenta abrir o modal de checkout
+  const checkModal = document.getElementById('checkout-modal');
+  if (checkModal) {
+    checkModal.classList.add('open');
+    updateCheckoutSummary();
+    
+    // Atualiza os textos de CEP e Frete dentro do modal
+    const cepDisplay = document.getElementById('modal-cep-display');
+    if (cepDisplay) cepDisplay.textContent = selectedCep || 'Não informado';
+    
+    const freteDisplay = document.getElementById('modal-frete-display');
+    if (freteDisplay && selectedFrete) {
+      freteDisplay.textContent = selectedFrete.name.includes('Cidades vizinhas') 
+        ? 'A combinar / Retirada' 
+        : `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
+  } else {
+    // Caso o modal não exista na página (fallback), envia direto pro WhatsApp
+    sendOrderToWhatsApp();
+  }
 };
 
 // ==========================================
