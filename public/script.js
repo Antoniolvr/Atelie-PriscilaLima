@@ -730,7 +730,7 @@ function renderSingleProduct() {
           <span class="price-main" style="font-size:2.2rem;">R$ ${fmt(p.price)}</span>
           <span style="font-size:0.9rem; color:var(--rose-dark); font-weight:700; margin-left:8px;">no PIX</span>
         </div>
-        <div style="font-size:1rem; color:#2e7d32; margin-top:0.5rem;">6x de R$ ${fmt(getInstallment(p.price))} sem juros</div>
+        <div style="font-size:1rem; color:#2e7d32; margin-top:0.5rem;">ou R$ ${fmt(getInstallment(p.price))} em 6x de R$ ${fmt(getInstallment(p.price))} sem juros</div>
       </div>
       
       <div class="pp-frete-box">
