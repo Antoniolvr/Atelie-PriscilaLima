@@ -157,7 +157,7 @@ const PRODUCTS = [
     image: '/imagens/produto12.png',
     video: '/videos/produto12.mp4',
     badge: 'Lancamento',
-    color: 'linear-gradient(135deg,#1B2A47,#2C3E50)',
+    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 20cm x 20cm',
     desc: 'Bolsa artesanal em crochê na cor azul marinho, com textura sofisticada em relevo, alça trançada e argolas com acabamento dourado. Uma peça elegante e exclusiva.' 
   },
@@ -170,7 +170,7 @@ const PRODUCTS = [
     image: '/imagens/produto13.png', 
     video: '/videos/produto13.mp4',
     badge: 'Verão', 
-    color: 'linear-gradient(135deg,#FFD1DC,#FF9EBB)', 
+    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)', 
     measure: 'Tamanho ajustável (peça sob medida)', 
     desc: 'Saída de banho artesanal na cor rosa vibrante. Possui trama vazada, ajuste na cintura com amarração, aplicação delicada de pérolas e lindo caimento com franjas na barra.' 
   },
