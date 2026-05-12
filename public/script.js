@@ -156,12 +156,6 @@ const PRODUCTS = [
     price: 90.00,
     image: '/imagens/produto12.png',
     video: '/videos/produto12.mp4',
-    // === NOVA GALERIA ADICIONADA AQUI ===
-    gallery: [
-      '/imagens/produto12-frente.png',
-      '/imagens/produto12-dentro.png',
-      '/imagens/produto12-detalhe.png'
-    ],
     badge: 'Lancamento',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 20cm x 20cm',
@@ -175,6 +169,8 @@ const PRODUCTS = [
     price: 40.00, 
     image: '/imagens/produto13.png', 
     video: '/videos/produto13.mp4',
+     // === NOVA GALERIA ADICIONADA AQUI ===
+    gallery: ['/imagens/produto13-modelo.png',],
     badge: 'Verão', 
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)', 
     measure: 'Tamanho ajustável (peça sob medida)', 
