@@ -156,6 +156,11 @@ const PRODUCTS = [
     price: 90.00,
     image: '/imagens/produto12.png',
     video: '/videos/produto12.mp4',
+    gallery: [
+      '/imagens/produto12-frente.png',
+      '/imagens/produto12-dentro.png',
+      '/imagens/produto12-detalhe.png'
+    ],
     badge: 'Lancamento',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 20cm x 20cm',
@@ -169,8 +174,9 @@ const PRODUCTS = [
     price: 40.00, 
     image: '/imagens/produto13.png', 
     video: '/videos/produto13.mp4',
-     // === NOVA GALERIA ADICIONADA AQUI ===
-    gallery: ['/imagens/produto13-modelo.png'],
+    gallery: [
+      '/imagens/produto13-modelo.png'
+    ],
     badge: 'Verão', 
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)', 
     measure: 'Tamanho ajustável (peça sob medida)', 
@@ -714,10 +720,10 @@ function renderSingleProduct() {
   
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
-  // === A LÓGICA DA GALERIA FOI ADICIONADA AQUI DENTRO ===
+  // === A LÓGICA DA GALERIA FOI ATUALIZADA AQUI PARA REMOVER BORDAS ===
   const mediaHtml = `
     <div class="pp-media-gallery">
-      <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
+      <div class="pp-main-viewer" id="zoom-container" style="background:#fff">
         ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `
           <img src="${safeImage}" id="zoom-img" alt="${safeName}">
           <video id="viewer-video" controls playsinline style="display:none; width:100%; height:100%; background:#000;"></video>
@@ -725,12 +731,12 @@ function renderSingleProduct() {
       </div>
       ${!p.custom ? `
       <div class="pp-thumbnails">
-        <div class="pp-thumb active" data-type="image" data-src="${safeImage}" style="background:${safeColor}">
+        <div class="pp-thumb active" data-type="image" data-src="${safeImage}">
           <img src="${safeImage}" alt="Foto Principal">
         </div>
         
         ${p.gallery && p.gallery.length > 0 ? p.gallery.map(img => `
-          <div class="pp-thumb" data-type="image" data-src="${escapeHtml(img)}" style="background:${safeColor}">
+          <div class="pp-thumb" data-type="image" data-src="${escapeHtml(img)}">
             <img src="${escapeHtml(img)}" alt="Foto Extra">
           </div>
         `).join('') : ''}
