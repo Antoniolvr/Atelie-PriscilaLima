@@ -154,7 +154,7 @@ const PRODUCTS = [
     name: 'Bolsa de Crochê Azul Marinho com Alça trançada',
     cat: 'moda',
     price: 90.00,
-    image: '/images/produto12.png',
+    image: '/imagens/produto12.png',
     video: '/videos/produto12.mp4',
     badge: 'Lancamento',
     color: 'linear-gradient(135deg,#1B2A47,#2C3E50)',
