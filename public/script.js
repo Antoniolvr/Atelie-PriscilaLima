@@ -157,11 +157,7 @@ const PRODUCTS = [
     image: '/imagens/produto12.png',
     video: '/videos/produto12.mp4',
     // === NOVA GALERIA ADICIONADA AQUI ===
-    gallery: [
-      '/imagens/produto12-frente.png',
-      '/imagens/produto12-dentro.png',
-      '/imagens/produto12-detalhe.png'
-    ],
+    gallery: ['/imagens/produto12-modelo.png'],
     badge: 'Lancamento',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 20cm x 20cm',
