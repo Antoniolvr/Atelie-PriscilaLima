@@ -156,6 +156,12 @@ const PRODUCTS = [
     price: 90.00,
     image: '/imagens/produto12.png',
     video: '/videos/produto12.mp4',
+    // === NOVA GALERIA ADICIONADA AQUI ===
+    gallery: [
+      '/imagens/produto12-frente.png',
+      '/imagens/produto12-dentro.png',
+      '/imagens/produto12-detalhe.png'
+    ],
     badge: 'Lancamento',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 20cm x 20cm',
@@ -712,6 +718,7 @@ function renderSingleProduct() {
   
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
+  // === A LÓGICA DA GALERIA FOI ADICIONADA AQUI DENTRO ===
   const mediaHtml = `
     <div class="pp-media-gallery">
       <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
@@ -725,6 +732,13 @@ function renderSingleProduct() {
         <div class="pp-thumb active" data-type="image" data-src="${safeImage}" style="background:${safeColor}">
           <img src="${safeImage}" alt="Foto Principal">
         </div>
+        
+        ${p.gallery && p.gallery.length > 0 ? p.gallery.map(img => `
+          <div class="pp-thumb" data-type="image" data-src="${escapeHtml(img)}" style="background:${safeColor}">
+            <img src="${escapeHtml(img)}" alt="Foto Extra">
+          </div>
+        `).join('') : ''}
+
         ${p.video ? `
         <div class="pp-thumb" data-type="video" data-src="${escapeHtml(p.video)}" style="position:relative; background:#000;">
           <span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:1.2rem; pointer-events:none;">▶</span>
