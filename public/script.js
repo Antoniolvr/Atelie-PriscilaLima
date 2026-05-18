@@ -89,7 +89,7 @@ const PRODUCTS = [
     sku: 'CENTRO-MESA-007',
     name: 'Sousplat Marsala, Cru e Dourado',
     cat: 'decoracao',
-    price: 30.00,
+    price: 40.00,
     image: '/imagens/produto7.png',
     video: '/videos/produto7.mp4',
     badge: 'Novo',
