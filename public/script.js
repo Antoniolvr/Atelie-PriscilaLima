@@ -482,4 +482,472 @@ function closeCart() {
   if(cepInput) cepInput.value = '';
   
   selectedCep = null;
-  selected
+  selectedFrete = null;
+  
+  const freteSel = document.getElementById('frete-selected');
+  if(freteSel) freteSel.style.display = 'none';
+  
+  const lista = document.getElementById('frete-options');
+  if(lista) {
+    lista.innerHTML = '';
+    lista.style.maxHeight = '500px';
+    lista.style.opacity = '1';
+    lista.style.overflow = 'visible';
+    lista.style.display = 'block';
+  }
+  
+  refreshUI();
+}
+
+window.switchMedia = function(type, src, element) {
+  const img = document.getElementById('zoom-img');
+  const video = document.getElementById('viewer-video');
+  const container = document.getElementById('zoom-container');
+  
+  if(!img || !video || !container) return;
+
+  document.querySelectorAll('.pp-thumb').forEach(t => t.classList.remove('active'));
+  if(element) element.classList.add('active');
+
+  if (type === 'image') {
+    video.style.display = 'none';
+    video.pause();
+    img.style.display = 'block';
+    img.src = src;
+    container.style.cursor = 'zoom-in';
+  } else if (type === 'video') {
+    img.style.display = 'none';
+    video.style.display = 'block';
+    video.src = src;
+    video.play().catch(e => console.log(e));
+    container.style.cursor = 'default';
+  }
+};
+
+function renderSingleProduct() {
+  const container = document.getElementById('single-product-container');
+  if (!container) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get('id'), 10);
+  const p = PRODUCTS.find(x => x.id === id);
+
+  if (!p) {
+    container.innerHTML = '<div style="padding:4rem; text-align:center;">Produto não encontrado.<br><br><a href="/" class="pp-btn">Voltar para a loja</a></div>';
+    return;
+  }
+
+  const safeName = escapeHtml(p.name);
+  const safeDesc = escapeHtml(p.desc);
+  const safeMeasure = escapeHtml(p.measure || '');
+  const safeCat = escapeHtml(CAT_LABELS[p.cat] || p.cat);
+  const safeImage = escapeHtml(p.image || '');
+
+  document.title = `${p.name} — Ateliê Priscila Lima`;
+
+  let thumbsHtml = '';
+  if (!p.custom) {
+    thumbsHtml += `<img src="${safeImage}" class="pp-thumb active" data-type="image" data-src="${safeImage}" alt="Miniatura">`;
+    if (p.gallery && p.gallery.length > 0) {
+      thumbsHtml += p.gallery.map(img => `<img src="${escapeHtml(img)}" class="pp-thumb" data-type="image" data-src="${escapeHtml(img)}" alt="Miniatura">`).join('');
+    }
+    if (p.video) {
+      thumbsHtml += `
+        <div class="pp-thumb" data-type="video" data-src="${escapeHtml(p.video)}" style="position:relative; background:#000;">
+          <span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:1.2rem; pointer-events:none;">▶</span>
+          <video src="${escapeHtml(p.video)}" style="opacity:0.7; width:100%; height:100%; object-fit:cover;"></video>
+        </div>
+      `;
+    }
+  }
+
+  const mediaHtml = `
+    <div class="product-media-column">
+      ${p.custom ? `<div style="background:#f9f9f9; padding:4rem; text-align:center; font-size:3rem; border-radius:12px;">✨</div>` : `
+        <div class="main-media-box" id="zoom-container" style="border-radius:12px; overflow:hidden; background:#fff; position:relative;">
+          <img src="${safeImage}" alt="${safeName}" id="zoom-img" style="width:100%; display:block; transition: transform 0.2s;">
+          <video id="viewer-video" style="display:none; width:100%; border-radius:12px;" controls></video>
+        </div>
+        <div class="pp-thumbnails" style="display:flex; gap:10px; margin-top:15px; overflow-x:auto;">
+          ${thumbsHtml}
+        </div>
+      `}
+    </div>
+  `;
+
+  let buyBoxHtml = `
+    <div class="product-details-content">
+      <div class="breadcrumb" style="font-size:0.85rem; color:#888; margin-bottom:1rem;">Início / ${safeCat}</div>
+      <h1 class="product-title" style="font-size:1.8rem; color:var(--brown-dark);">${safeName}</h1>
+      ${p.badge ? `<span class="badge" style="display:inline-block; margin-top:0.5rem; background:var(--rose-light); color:var(--brown-dark); padding:4px 10px; border-radius:20px; font-size:0.8rem;">${escapeHtml(p.badge)}</span>` : ''}
+      
+      ${p.rating ? `
+      <div style="display: flex; align-items: center; gap: 10px; margin: 12px 0; font-size: 0.85rem; color: #666; border-bottom: 1px solid #eee; padding-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 4px; color: #333; font-weight: 600;">
+          <span style="font-size: 1.1rem;">${escapeHtml(p.rating)}</span>
+          <span style="color: #FFC107; font-size: 1.2rem; letter-spacing: -2px;">★★★★★</span>
+        </div>
+        <span style="color: #ccc;">|</span>
+        <span style="text-decoration: underline;">${escapeHtml(String(p.reviews))} Avaliações</span>
+        <span style="color: #ccc;">|</span>
+        <span>${escapeHtml(p.sold || 'Produto Exclusivo')}</span>
+      </div>
+      ` : ''}
+  `;
+
+  if (p.custom) {
+    buyBoxHtml += `
+      <div style="margin: 2rem 0;">
+        <p style="font-weight:600; font-size:1.2rem;">Sob encomenda</p>
+      </div>
+      <button class="custom-btn pp-btn" data-custom-id="${p.id}" style="width:100%; padding:15px; font-size:1.1rem;">Solicitar Orçamento no WhatsApp</button>
+    </div>`;
+  } else {
+    buyBoxHtml += `
+      <div class="price-box" style="margin: 1.5rem 0; padding:1.5rem; background:#fafafa; border-radius:12px;">
+        <div style="font-size:1.8rem; font-weight:700; color:var(--brown-dark);">R$ ${fmt(p.price)} <span style="font-size:1rem; font-weight:400; color:#666;">no PIX</span></div>
+        <div style="font-size:0.9rem; color:#666; margin-top:5px;">ou R$ ${fmt(getCardPrice(p.price))} em 6x de R$ ${fmt(getInstallment(p.price))} sem juros</div>
+      </div>
+      
+      <div style="display:flex; gap:10px; margin-bottom:2rem;">
+        <div style="flex:1;">
+          <label style="font-size:0.8rem; color:#888;">Quantidade</label>
+          <div style="display:flex; border:1px solid #ddd; border-radius:8px; overflow:hidden;">
+            <button id="pp-btn-minus" style="padding:10px 15px; background:#f5f5f5; border:none; cursor:pointer;">-</button>
+            <input type="number" id="pp-qty" value="1" min="1" max="99" style="width:100%; text-align:center; border:none; font-size:1rem;" readonly>
+            <button id="pp-btn-plus" style="padding:10px 15px; background:#f5f5f5; border:none; cursor:pointer;">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button class="add-btn pp-btn pp-btn-outline" data-product-id="${p.id}" style="padding:15px; font-size:1.1rem;">🛍️ Adicionar à sacola</button>
+        <button class="quick-buy-btn pp-btn" data-product-id="${p.id}" style="padding:15px; font-size:1.1rem;">💳 Comprar agora</button>
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = `
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:3rem; max-width:1000px; margin:0 auto;">
+      ${mediaHtml}
+      ${buyBoxHtml}
+    </div>
+    <div style="margin-top:4rem; border-top:1px solid #eee; padding-top:3rem;">
+      <h2 style="font-size:1.5rem; color:var(--brown-dark); margin-bottom:1.5rem;">Descrição e ficha técnica</h2>
+      <p style="font-size:0.9rem; color:#888; margin-bottom:1rem;">SKU: ${p.sku || 'SKU-'+p.id}</p>
+      <p style="line-height:1.6; color:#444;">${safeDesc}</p>
+      <ul style="margin-top:1.5rem; color:#444; padding-left:20px; line-height:1.8;">
+        ${safeMeasure ? `<li><strong>📏 Medidas:</strong> ${safeMeasure}</li>` : ''}
+        <li><strong>🧶 Material:</strong> Fios de alta qualidade, 100% artesanal.</li>
+      </ul>
+    </div>
+  `;
+
+  // Lógica de Zoom na página de produto
+  const zoomContainer = document.getElementById('zoom-container');
+  const zoomImg = document.getElementById('zoom-img');
+
+  if (zoomContainer && zoomImg) {
+    zoomContainer.addEventListener('mousemove', (e) => {
+      if(zoomImg.style.display === 'none') return;
+      const rect = zoomContainer.getBoundingClientRect();
+      const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+      const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+      zoomImg.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+      zoomImg.style.transform = 'scale(2.5)';
+    });
+    zoomContainer.addEventListener('mouseleave', () => {
+      zoomImg.style.transformOrigin = 'center center';
+      zoomImg.style.transform = 'scale(1)';
+    });
+  }
+}
+
+// ==========================================
+// FUNÇÕES DE CHECKOUT & INTEGRAÇÃO WHATSAPP
+// ==========================================
+
+window.openCheckoutDirectly = function() {
+  const cartSide = document.getElementById('cart-sidebar');
+  const cartOverlayEl = document.getElementById('cart-overlay');
+  
+  if (cartSide) cartSide.classList.remove('open');
+  if (cartOverlayEl) cartOverlayEl.classList.remove('open');
+
+  if (!selectedFrete && !selectedCep) {
+    openCart();
+    showToast('Por favor, informe seu CEP para calcular o total.');
+    return;
+  }
+
+  const checkModal = document.getElementById('checkout-modal');
+  if (checkModal) {
+    checkModal.classList.add('open');
+    updateCheckoutSummary();
+    
+    const cepDisplay = document.getElementById('modal-cep-display');
+    if (cepDisplay) cepDisplay.textContent = selectedCep || 'Não informado';
+
+    const freteDisplay = document.getElementById('modal-frete-display');
+    if (freteDisplay && selectedFrete) {
+      freteDisplay.textContent = selectedFrete.name.includes('Cidades vizinhas') 
+        ? 'A combinar / Retirada' 
+        : `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
+  }
+};
+
+function updateCheckoutSummary() {
+  const paymentMethod = getPaymentMethod();
+  const sumItems = document.getElementById('sum-items');
+  
+  if (sumItems) {
+    sumItems.innerHTML = cart.map(x => {
+      const unitPrice = getUnitPriceByMethod(x.price, paymentMethod);
+      return `<div>${escapeHtml(x.name)} × ${x.qty} <br> <small>R$ ${fmt(unitPrice * x.qty)}</small></div>`;
+    }).join('<hr style="margin:10px 0; border:none; border-top:1px dashed #ddd;">');
+  }
+
+  const sumTotalVal = document.getElementById('sum-total-val');
+  if (sumTotalVal) {
+    sumTotalVal.textContent = 'R$ ' + fmt(getTotalWithFrete(paymentMethod));
+  }
+}
+
+function getCustomerData() {
+  const form = document.getElementById('checkout-form');
+  if (!form) return { paymentMethod: 'avista', name: 'Não informado', note: '', lgpd: true };
+
+  const data = new FormData(form);
+  return {
+    paymentMethod: String(data.get('paymentMethod') || 'avista').trim(),
+    name:          String(data.get('name')          || '').trim(),
+    note:          String(data.get('note')          || '').trim(),
+    lgpd:          data.get('lgpdConsent') === 'on'
+  };
+}
+
+function validateCheckout() {
+  if (!cart.length) {
+    showToast('Seu carrinho está vazio.');
+    return false;
+  }
+  if (!selectedFrete && !selectedCep) {
+    showToast('Selecione uma opção de frete.');
+    return false;
+  }
+  
+  const form = document.getElementById('checkout-form');
+  if (form) {
+    const customer = getCustomerData();
+    if (!customer.name) {
+      showToast('Por favor, preencha o seu nome ou apelido.');
+      return false;
+    }
+    if (!customer.lgpd) {
+      showToast('Você precisa concordar com o envio dos dados.');
+      return false;
+    }
+  }
+  return true;
+}
+
+function buildWhatsAppMessage() {
+  const customer = getCustomerData();
+  const paymentMethod = customer.paymentMethod || 'avista';
+
+  const itemsText = cart.map((item, index) => {
+    const unitPrice = getUnitPriceByMethod(item.price, paymentMethod);
+    const sku = CATALOG[item.id]?.sku ? ` | SKU: ${CATALOG[item.id].sku}` : '';
+    return `${index + 1}. ${item.name}${sku}\nQtd: ${item.qty}\nValor unitário: R$ ${fmt(unitPrice)}\nSubtotal: R$ ${fmt(unitPrice * item.qty)}`;
+  }).join('\n\n');
+
+  let freteText = '🚚 FRETE: A combinar';
+  if (selectedFrete) {
+    freteText = selectedFrete.name.includes('Cidades vizinhas')
+      ? '🚚 FRETE: A combinar / Retirada'
+      : `🚚 FRETE: ${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+  }
+
+  const lblPay = paymentMethod === 'cartao' ? 'Cartão em até 6x sem juros' : 'PIX';
+  
+  return `Olá! Gostaria de finalizar este pedido:\n\n🛍️ *PEDIDO*\n${itemsText}\n\n💳 *FORMA DE PAGAMENTO*: ${lblPay}\n${freteText}\n\n💰 *TOTAL FINAL*: R$ ${fmt(getTotalWithFrete(paymentMethod))}\n\n👤 *DADOS DO CLIENTE*\nNome: ${customer.name || 'Não informado'}\nObservações: ${customer.note || 'Nenhuma'}\n\n*(O endereço de entrega e os detalhes de contacto serão combinados por aqui na conversa)*`;
+}
+
+function sendOrderToWhatsApp() {
+  if (!validateCheckout()) return;
+  setPaymentStatus('A abrir WhatsApp...');
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildWhatsAppMessage())}`, '_blank', 'noopener,noreferrer');
+}
+
+function sendCustomOrderToWhatsApp(productId) {
+  const p = PRODUCTS.find(x => x.id === productId && x.custom);
+  if (!p) return;
+  const msg = `Olá! Tenho interesse em uma peça personalizada.\n\n✨ PEDIDO PERSONALIZADO\nReferência: ${p.name}\nSKU: ${p.sku}\n\nQuero enviar minha inspiração, foto de referência, cores, medidas e demais detalhes para orçamento.`;
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+}
+
+// ==========================================
+// EVENT LISTENERS GLOBAIS
+// ==========================================
+
+document.body.addEventListener('click', (e) => {
+  // Quantidade (Página de Produto)
+  if (e.target.closest('#pp-btn-minus')) {
+    const qtyInput = document.getElementById('pp-qty');
+    if (qtyInput) qtyInput.value = Math.max(1, parseInt(qtyInput.value) - 1);
+    return;
+  }
+  if (e.target.closest('#pp-btn-plus')) {
+    const qtyInput = document.getElementById('pp-qty');
+    if (qtyInput) qtyInput.value = Math.min(99, parseInt(qtyInput.value) + 1);
+    return;
+  }
+
+  const qtyInputEl = document.getElementById('pp-qty');
+  const selectedQty = qtyInputEl ? parseInt(qtyInputEl.value, 10) : 1;
+
+  // Botão "Comprar Agora"
+  const quickBtn = e.target.closest('.quick-buy-btn');
+  if (quickBtn) {
+    const id = parseInt(quickBtn.dataset.productId, 10);
+    const p = PRODUCTS.find(x => x.id === id);
+    if (!p) return;
+
+    const existing = cart.find(x => x.id === id);
+    if (!existing) {
+      cart.push({ id: p.id, qty: selectedQty, name: p.name, price: p.price, image: p.image });
+    } else {
+      existing.qty = selectedQty;
+    }
+    
+    saveCart();
+    refreshUI();
+    renderCartBody();
+    window.openCheckoutDirectly();
+    return;
+  }
+
+  // Troca de Mídia
+  const thumb = e.target.closest('.pp-thumb');
+  if (thumb) {
+    window.switchMedia(thumb.dataset.type, thumb.dataset.src, thumb);
+    return;
+  }
+
+  // Botão Personalizado
+  const customBtn = e.target.closest('.custom-btn');
+  if (customBtn) {
+    sendCustomOrderToWhatsApp(parseInt(customBtn.dataset.customId, 10));
+    return;
+  }
+
+  // Botão Adicionar à Sacola
+  const btn = e.target.closest('.add-btn');
+  if (btn) {
+    const id = parseInt(btn.dataset.productId, 10);
+    const p = PRODUCTS.find(x => x.id === id);
+    if (!p || p.custom) return;
+
+    const existing = cart.find(x => x.id === id);
+    if (existing) {
+      existing.qty = Math.min(99, existing.qty + selectedQty);
+    } else {
+      cart.push({ id: p.id, qty: selectedQty, name: p.name, price: p.price, image: p.image });
+    }
+    saveCart();
+    refreshUI();
+    renderCartBody();
+    showToast(`${p.name} adicionado!`);
+    bumpBadge();
+    
+    const rect = btn.getBoundingClientRect();
+    createConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    
+    if(document.getElementById('single-product-container')) openCart();
+    return;
+  }
+
+  // Filtros (Home)
+  const filterBtn = e.target.closest('.filter-btn');
+  if (filterBtn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    filterBtn.classList.add('active');
+    activeFilter = filterBtn.dataset.filter;
+    renderProducts();
+    return;
+  }
+
+  // Carrinho Lateral (Deletar, Somar, Subtrair)
+  const actionBtn = e.target.closest('[data-action]');
+  if (actionBtn && e.target.closest('#cart-body')) {
+    const id = parseInt(actionBtn.dataset.id, 10);
+    const action = actionBtn.dataset.action;
+    
+    if (action === 'del') {
+      cart = cart.filter(x => x.id !== id);
+    } else {
+      const item = cart.find(x => x.id === id);
+      if (item) {
+        item.qty += action === 'plus' ? 1 : -1;
+        item.qty = Math.min(99, Math.max(0, item.qty));
+        if (item.qty <= 0) cart = cart.filter(x => x.id !== id);
+      }
+    }
+    saveCart();
+    refreshUI();
+    renderCartBody();
+  }
+});
+
+// Eventos de Checkou e UI Adicional
+const addEvent = (id, event, handler) => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener(event, handler);
+};
+
+addEvent('cart-toggle-btn', 'click', openCart);
+addEvent('cart-close-btn', 'click', closeCart);
+addEvent('cart-overlay', 'click', closeCart);
+
+// Fechar carrinho usando apenas classList (Resolve o erro do CEP não informado)
+addEvent('checkout-btn', 'click', () => {
+  if (!cart.length) return;
+  if (!selectedFrete && !selectedCep) {
+    showToast('Selecione uma opção de frete antes de continuar.');
+    return;
+  }
+  
+  document.getElementById('cart-sidebar').classList.remove('open');
+  document.getElementById('cart-overlay').classList.remove('open');
+  
+  setPaymentStatus('');
+  const checkModal = document.getElementById('checkout-modal');
+  if (checkModal) {
+    checkModal.classList.add('open');
+    updateCheckoutSummary();
+    
+    const cepDisplay = document.getElementById('modal-cep-display');
+    if (cepDisplay) cepDisplay.textContent = selectedCep || 'Não informado';
+
+    const freteDisplay = document.getElementById('modal-frete-display');
+    if (freteDisplay && selectedFrete) {
+      freteDisplay.textContent = selectedFrete.name.includes('Cidades vizinhas') 
+        ? 'A combinar / Retirada' 
+        : `${selectedFrete.name} - R$ ${fmt(selectedFrete.price)}`;
+    }
+  }
+});
+
+addEvent('checkout-close-btn', 'click', () => {
+  const modal = document.getElementById('checkout-modal');
+  if(modal) modal.classList.remove('open');
+});
+
+addEvent('payment-method', 'change', updateCheckoutSummary);
+addEvent('whatsapp-checkout-btn', 'click', sendOrderToWhatsApp);
+
+// Inicialização
+if (document.getElementById('products-grid')) renderProducts();
+renderSingleProduct();
+refreshUI();
