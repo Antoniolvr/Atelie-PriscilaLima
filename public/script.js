@@ -9,6 +9,7 @@ function escapeHtml(str) {
 const WHATSAPP_NUMBER = '5581996809206';
 const CARD_FEE_PERCENT = 8.69;
 
+// Adicionados os campos: sales (vendidos), rating (nota), reviewsCount (qtd avaliações) e reviewsData (comentários/fotos)
 const PRODUCTS = [
   {
     id: 1,
@@ -20,7 +21,11 @@ const PRODUCTS = [
     badge: 'Novidade',
     color: 'linear-gradient(135deg,#F2E2E4,#E8CDD0)',
     measure: '38cm x 38cm',
-    desc: 'Sousplat artesanal em crochê com acabamento delicado para valorizar sua mesa com charme e elegância.'
+    desc: 'Sousplat artesanal em crochê com acabamento delicado para valorizar sua mesa com charme e elegância.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 2,
@@ -33,7 +38,11 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#E8F1EC,#D9E9E0)',
     measure: '58cm x 38cm',
-    desc: 'Peça artesanal em formato oval com composição elegante em verde e off white.'
+    desc: 'Peça artesanal em formato oval com composição elegante em verde e off white.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 3,
@@ -45,7 +54,11 @@ const PRODUCTS = [
     badge: 'Destaque',
     color: 'linear-gradient(135deg,#E7EFE5,#DCE9D7)',
     measure: '36cm x 36cm',
-    desc: 'Sousplat em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado.'
+    desc: 'Sousplat em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 4,
@@ -57,7 +70,11 @@ const PRODUCTS = [
     badge: 'Encantador',
     color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
     measure: '36cm x 36cm',
-    desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.'
+    desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 5,
@@ -70,7 +87,11 @@ const PRODUCTS = [
     badge: 'Especial',
     color: 'linear-gradient(135deg,#FFF8F1,#F8EEDC)',
     measure: '100cm~120cm x 20cm',
-    desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho de corações.'
+    desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho de corações.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 6,
@@ -82,7 +103,11 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#F3ECE7,#E8DDD4)',
     measure: '95cm x 22cm',
-    desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados e acabamento delicado.'
+    desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados e acabamento delicado.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 7,
@@ -95,7 +120,11 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 34cm x 34cm',
-    desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.'
+    desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 8,
@@ -108,7 +137,11 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#F8ECEC,#F1DADA)',
     measure: 'Aprox. 17cm x 17cm',
-    desc: 'Porta Copos artesanal com flores vermelhas e base em tom cru.'
+    desc: 'Porta Copos artesanal com flores vermelhas e base em tom cru.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 9,
@@ -121,7 +154,11 @@ const PRODUCTS = [
     badge: 'Verao',
     color: 'linear-gradient(135deg,#F7E9EA,#EFD6D8)',
     measure: 'Tamanho ajustável (P/M/G/GG)',
-    desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.'
+    desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 10,
@@ -134,7 +171,11 @@ const PRODUCTS = [
     badge: 'Novo',
     color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
     measure: 'Aprox. 40cm x 40cm',
-    desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.'
+    desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 11,
@@ -146,7 +187,11 @@ const PRODUCTS = [
     badge: 'Fofo',
     color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
     measure: 'Aprox. 5cm x 6cm',
-    desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.'
+    desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   {
     id: 12,
@@ -159,7 +204,11 @@ const PRODUCTS = [
     badge: 'Lancamento',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 20cm x 20cm',
-    desc: 'Bolsa artesanal em crochê na cor azul marinho, com textura sofisticada em relevo, alça trançada e argolas com acabamento dourado. Uma peça elegante e exclusiva.' 
+    desc: 'Bolsa artesanal em crochê na cor azul marinho, com textura sofisticada em relevo, alça trançada e argolas com acabamento dourado. Uma peça elegante e exclusiva.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   },
   { 
     id: 13, 
@@ -169,12 +218,25 @@ const PRODUCTS = [
     price: 40.00, 
     image: '/imagens/produto13.png', 
     video: '/videos/produto13.mp4',
-     // === NOVA GALERIA ADICIONADA AQUI ===
-    gallery: ['/imagens/produto13-modelo.png',],
+    gallery: ['/imagens/produto13-modelo.png'],
     badge: 'Verão', 
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)', 
     measure: 'Tamanho ajustável (peça sob medida)', 
-    desc: 'Saída de banho artesanal na cor rosa vibrante. Possui trama vazada, ajuste na cintura com amarração, aplicação delicada de pérolas e lindo caimento com franjas na barra.' 
+    desc: 'Saída de banho artesanal na cor rosa vibrante. Possui trama vazada, ajuste na cintura com amarração, aplicação delicada de pérolas e lindo caimento com franjas na barra.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    // Exemplo de como você vai preencher os dados reais no futuro:
+    reviewsData: [
+      /*
+      {
+        author: 'Maria S.',
+        date: '10/05/2026',
+        text: 'Amei a saia! O acabamento é impecável e as pérolas dão um charme todo especial.',
+        photos: ['/imagens/foto-cliente-1.jpg', '/imagens/foto-cliente-2.jpg']
+      }
+      */
+    ]
   },
   {
     id: 14,
@@ -188,7 +250,11 @@ const PRODUCTS = [
     measure: 'Sob encomenda',
     desc: 'Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
     custom: true,
-    buttonText: 'Solicitar'
+    buttonText: 'Solicitar',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
   }
 ];
 
@@ -362,6 +428,25 @@ function closeCart() {
   const over = document.getElementById('cart-overlay');
   if(side) side.classList.remove('open');
   if(over) over.classList.remove('open');
+  
+  const cepInput = document.getElementById('cep-input');
+  if(cepInput) cepInput.value = '';
+  
+  selectedCep = null;
+  selectedFrete = null;
+  
+  const freteSelected = document.getElementById('frete-selected');
+  if(freteSelected) freteSelected.style.display = 'none';
+  
+  const lista = document.getElementById('frete-options');
+  if(lista) {
+    lista.innerHTML = '';
+    lista.style.maxHeight = '500px';
+    lista.style.opacity = '1';
+    lista.style.overflow = 'visible';
+    lista.style.display = 'block';
+  }
+  
   refreshUI();
 }
 
@@ -636,6 +721,16 @@ function renderProducts() {
         <a href="/produto.html?id=${p.id}" style="text-decoration: none; color: inherit;">
           <h3 class="product-name">${safeName}</h3>
         </a>
+        
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.6rem; font-size: 0.8rem; color: var(--brown-mid);">
+          <div style="display: flex; align-items: center; color: #F5A623;">
+            <span style="font-size: 1rem; margin-right: 2px;">★</span>
+            <span style="font-weight: 600; color: var(--brown);">${p.rating > 0 ? p.rating.toFixed(1) : '0.0'}</span>
+          </div>
+          <span style="opacity: 0.4;">|</span>
+          <span>${p.sales || 0} Vendido(s)</span>
+        </div>
+
         ${safeMeasure ? `<p class="product-measure">Medida: ${safeMeasure}</p>` : ''}
         <p class="product-desc">${safeDesc}</p>
 
@@ -660,6 +755,19 @@ function renderProducts() {
                     sem juros no cartão
                   </div>
                 </div>
+              </div>
+
+              <div class="product-actions" style="display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; margin-top: 0.5rem;">
+                ${p.video ? `
+                  <button class="video-btn" 
+                          data-video-src="${escapeHtml(p.video)}" 
+                          data-video-name="${safeName}">
+                    🎥 Vídeo
+                  </button>
+                ` : ''}
+                <button class="add-btn quick-buy-btn" data-product-id="${p.id}" style="position: relative; flex: 1;">
+                  🛍️ Compre agora
+                </button>
               </div>
             `
           }
@@ -714,7 +822,6 @@ function renderSingleProduct() {
   
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
-  // === A LÓGICA DA GALERIA FOI ADICIONADA AQUI DENTRO ===
   const mediaHtml = `
     <div class="pp-media-gallery">
       <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
@@ -750,6 +857,17 @@ function renderSingleProduct() {
     <div class="pp-buy-box">
       <div class="pp-breadcrumb"><a href="/">Início</a> / <a href="/#produtos">${safeCat}</a></div>
       <h1 class="pp-title">${safeName}</h1>
+      
+      <div style="display: flex; align-items: center; gap: 12px; margin: 0.5rem 0 1rem 0; font-size: 0.9rem; color: var(--brown-mid);">
+        <div style="display: flex; align-items: center; color: #F5A623;">
+          <span style="font-size: 1.1rem; margin-right: 4px;">★</span>
+          <span style="font-weight: 700; color: var(--brown); font-size: 1rem;">${p.rating > 0 ? p.rating.toFixed(1) : '0.0'}</span>
+        </div>
+        <a href="#avaliacoes" style="color: var(--rose-dark); text-decoration: underline;">${p.reviewsCount || 0} Avaliações</a>
+        <span style="opacity: 0.4;">|</span>
+        <span>${p.sales || 0} Vendido(s)</span>
+      </div>
+
       ${p.badge ? `<span class="product-badge" style="position:relative; margin-bottom:1rem; display:inline-block;">${escapeHtml(p.badge)}</span>` : ''}
   `;
 
@@ -804,6 +922,66 @@ function renderSingleProduct() {
         <p>${safeDesc}</p>
         ${safeMeasure ? `<p style="margin-top:1rem;"><strong>📏 Medidas:</strong> ${safeMeasure}</p>` : ''}
         <p style="margin-top:0.5rem;"><strong>🧶 Material:</strong> Fios de alta qualidade, 100% artesanal.</p>
+      </div>
+    </div>
+    
+    <div id="avaliacoes" class="pp-reviews-section" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(216,182,185,.3);">
+      <h2 class="pp-bottom-title" style="margin-bottom: 1.5rem;">Opiniões do produto</h2>
+      
+      <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: center;">
+        <div style="text-align: center; min-width: 120px;">
+          <div style="font-size: 3.5rem; font-weight: 700; color: var(--brown); line-height: 1;">${p.rating > 0 ? p.rating.toFixed(1) : '0.0'}</div>
+          <div style="color: #F5A623; font-size: 1.5rem; letter-spacing: 2px;">★★★★★</div>
+          <div style="font-size: 0.85rem; color: var(--brown-mid); margin-top: 4px;">${p.reviewsCount || 0} avaliações</div>
+        </div>
+        
+        <div style="flex: 1; min-width: 250px;">
+           <p style="font-size: 0.9rem; color: var(--brown-mid); line-height: 1.6;">As avaliações e fotos de clientes aparecerão aqui. <br>Exiba a opinião real de quem comprou e garanta ainda mais confiança nas suas peças!</p>
+        </div>
+      </div>
+      
+      <div style="text-align: right; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(216,182,185,.2);">
+        <button class="btn-pri" onclick="document.getElementById('review-form').style.display='block'" style="font-size: 0.85rem; padding: 0.6rem 1.2rem;">Escrever uma avaliação</button>
+      </div>
+
+      <div id="review-form" style="display:none; background: rgba(216,182,185,.1); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--brown);">Deixe sua avaliação</h3>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; color: #F5A623; font-size: 1.5rem; cursor: pointer;">
+          <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+        </div>
+        
+        <input type="text" placeholder="Seu nome ou apelido" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid rgba(169,120,125,.3); font-family: inherit;">
+        
+        <textarea placeholder="O que você achou do acabamento, da embalagem e do produto? Escreva sua opinião..." rows="4" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid rgba(169,120,125,.3); font-family: inherit; resize: vertical;"></textarea>
+        
+        <div style="margin-bottom:15px;">
+          <label style="font-size:0.85rem; color:var(--brown-mid); display:block; margin-bottom:6px; font-weight: 600;">Adicionar fotos (opcional):</label>
+          <input type="file" accept="image/*" multiple style="font-size: 0.85rem;">
+        </div>
+        
+        <button class="btn-pri" onclick="alert('Muito obrigada! Sua avaliação e fotos foram enviadas e serão analisadas pelo Ateliê Priscila Lima antes de aparecerem no site.'); this.parentElement.style.display='none';" style="width: 100%;">Enviar Avaliação</button>
+      </div>
+
+      <div class="pp-reviews-list">
+        ${p.reviewsData && p.reviewsData.length > 0 
+          ? p.reviewsData.map(r => `
+            <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(216,182,185,.2);">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <div style="color: #F5A623; font-size: 1rem;">★★★★★</div>
+                <span style="font-size: 0.9rem; font-weight: 600; color: var(--brown);">${escapeHtml(r.author)}</span>
+                <span style="font-size: 0.75rem; color: var(--brown-light);">${escapeHtml(r.date)}</span>
+              </div>
+              <p style="font-size: 0.9rem; color: var(--brown-mid); line-height: 1.6; margin-bottom: 10px;">${escapeHtml(r.text)}</p>
+              ${r.photos && r.photos.length > 0 ? `
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  ${r.photos.map(photo => `<img src="${escapeHtml(photo)}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(216,182,185,.3);">`).join('')}
+                </div>
+              ` : ''}
+            </div>
+          `).join('')
+          : `<p style="color: var(--brown-light); font-style: italic; text-align: center; padding: 2rem 0;">Nenhuma avaliação para este produto ainda. Seja o primeiro a avaliar!</p>`
+        }
       </div>
     </div>
   `;
@@ -870,6 +1048,18 @@ document.body.addEventListener('click', (e) => {
     return;
   }
 
+  // Lógica do Vídeo (Na Página Home / Vitrine)
+  const videoBtn = e.target.closest('.video-btn');
+  if (videoBtn) {
+    if (typeof openProductVideo === 'function') {
+        openProductVideo(
+          videoBtn.dataset.videoSrc,
+          videoBtn.dataset.videoName
+        );
+    }
+    return;
+  }
+
   // Troca de Mídia (Miniaturas)
   const thumb = e.target.closest('.pp-thumb');
   if (thumb) {
@@ -891,7 +1081,7 @@ document.body.addEventListener('click', (e) => {
   }
 
   // Botão Adicionar à Sacola
-  const btn = e.target.closest('.add-btn');
+  const btn = e.target.closest('.add-btn:not(.quick-buy-btn)');
   if (btn) {
     const id = parseInt(btn.dataset.productId, 10);
     const p  = PRODUCTS.find(x => x.id === id);
@@ -1005,11 +1195,21 @@ addEvent('checkout-btn', 'click', () => {
   const checkModal = document.getElementById('checkout-modal');
   if (checkModal) window.openCheckoutDirectly();
 });
-addEvent('checkout-close-btn', 'click', () => document.getElementById('checkout-modal').classList.remove('open'));
-addEvent('checkout-modal', 'click', function(e) { if (e.target === this) this.classList.remove('open'); });
+addEvent('checkout-close-btn', 'click', () => {
+  const ch = document.getElementById('checkout-modal');
+  if(ch) ch.classList.remove('open');
+});
+const cModal = document.getElementById('checkout-modal');
+if(cModal) {
+  cModal.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+}
 addEvent('payment-method', 'change', updateCheckoutSummary);
 addEvent('whatsapp-checkout-btn', 'click', sendOrderToWhatsApp);
-addEvent('btn-trocar-frete', 'click', trocarFrete);
+
+const btnTrocarFrete = document.getElementById('btn-trocar-frete');
+if (btnTrocarFrete) {
+  btnTrocarFrete.addEventListener('click', trocarFrete);
+}
 
 // ==========================================
 // INICIALIZAÇÃO
