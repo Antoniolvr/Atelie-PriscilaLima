@@ -896,8 +896,16 @@ function renderSingleProduct() {
         <div id="pp-frete-results" style="margin-top:12px; display:${selectedCep ? 'block' : 'none'};"></div>
       </div>
 
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 1.2rem; color: #d35400; font-weight: 600; font-size: 0.95rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span>Sob encomenda: envio após 15 dias da compra</span>
+      </div>
+
       <div class="pp-actions">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; margin-top: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; margin-top: 1rem;">
           <span style="font-size: 0.95rem; color: var(--brown); font-weight: 600;">Quantidade:</span>
           <div style="display: flex; border: 1px solid rgba(169,120,125,.4); border-radius: 8px; overflow: hidden; background: #fff; width: fit-content;">
             <button id="pp-btn-minus" style="padding: 6px 14px; background: rgba(216,182,185,.1); border: none; cursor: pointer; font-size: 1.2rem; color: var(--brown); transition: background 0.2s;">-</button>
@@ -988,7 +996,6 @@ function renderSingleProduct() {
 
   if (selectedCep) window.calculateProductFrete();
 
-  // Lógica do Zoom
   const zoomContainer = document.getElementById('zoom-container');
   const zoomImg = document.getElementById('zoom-img');
   if (zoomContainer && zoomImg) {
