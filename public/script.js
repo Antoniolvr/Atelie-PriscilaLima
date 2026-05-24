@@ -409,7 +409,7 @@ function renderProducts() {
       <div class="product-card">
         <div class="product-img-wrap">
           ${safeBadge ? `<span class="badge" style="background:${safeColor}">${safeBadge}</span>` : ''}
-          <a href="/produto.html?id=${p.id}"><img src="${safeImage}" alt="${safeName}" loading="lazy"></a>
+          <a href="/produto.html?id=${p.id}"><img src="${safeImage}" alt="${safeName}" style="width: 100%; height: auto; object-fit: cover;"></a>
         </div>
         <div class="product-info">
           <div class="product-cat">${safeCat}</div>
