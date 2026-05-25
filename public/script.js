@@ -956,7 +956,7 @@ function renderSingleProduct() {
       <div id="review-form" style="display:none; background: rgba(216,182,185,.1); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--brown);">Deixe sua avaliação</h3>
         
-        <div id="star-rating-container" style="display: flex; gap: 10px; margin-bottom: 15px; color: #F5A623; font-size: 1.5rem; cursor: pointer;">
+        <div id="star-rating-container" style="display: flex; gap: 10px; margin-bottom: 15px; color: #F5A623; font-size: 1.5rem; cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;">
           <span class="rating-star" data-value="1">☆</span>
           <span class="rating-star" data-value="2">☆</span>
           <span class="rating-star" data-value="3">☆</span>
