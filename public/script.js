@@ -759,6 +759,11 @@ function renderProducts() {
 
               <div class="product-actions" style="display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; margin-top: 0.5rem;">
                 ${p.video ? `
+                  <button class="video-btn" 
+                          data-video-src="${escapeHtml(p.video)}" 
+                          data-video-name="${safeName}">
+                    🎥 Vídeo
+                  </button>
                 ` : ''}
                 <button class="add-btn quick-buy-btn" data-product-id="${p.id}" style="position: relative; flex: 1;">
                   🛍️ Compre agora
@@ -896,7 +901,7 @@ function renderSingleProduct() {
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-        <span>Sob encomenda: envio após 7~10 dias da compra</span>
+        <span>Sob encomenda: envio após 15 dias da compra</span>
       </div>
 
       <div class="pp-actions">
@@ -916,6 +921,7 @@ function renderSingleProduct() {
   }
   buyBoxHtml += `</div>`;
 
+  // === AQUI FICA O NOVO FORMULÁRIO DE AVALIAÇÃO COM AS ESTRELAS INTERATIVAS ===
   container.innerHTML = `
     <div class="pp-top-section">${mediaHtml}${buyBoxHtml}</div>
     <div class="pp-bottom-section">
@@ -950,9 +956,14 @@ function renderSingleProduct() {
       <div id="review-form" style="display:none; background: rgba(216,182,185,.1); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--brown);">Deixe sua avaliação</h3>
         
-        <div style="display: flex; gap: 10px; margin-bottom: 15px; color: #F5A623; font-size: 1.5rem; cursor: pointer;">
-          <span>☆</span><span>☆</span><span>☆</span><span>☆</span><span>☆</span>
+        <div id="star-rating-container" style="display: flex; gap: 10px; margin-bottom: 15px; color: #F5A623; font-size: 1.5rem; cursor: pointer;">
+          <span class="rating-star" data-value="1">☆</span>
+          <span class="rating-star" data-value="2">☆</span>
+          <span class="rating-star" data-value="3">☆</span>
+          <span class="rating-star" data-value="4">☆</span>
+          <span class="rating-star" data-value="5">☆</span>
         </div>
+        <input type="hidden" id="review-rating-value" value="0">
         
         <input type="text" placeholder="Seu nome ou apelido" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid rgba(169,120,125,.3); font-family: inherit;">
         
@@ -963,7 +974,14 @@ function renderSingleProduct() {
           <input type="file" accept="image/*" multiple style="font-size: 0.85rem;">
         </div>
         
-        <button class="btn-pri" onclick="alert('Muito obrigada! Sua avaliação e fotos foram enviadas e serão analisadas pelo Ateliê Priscila Lima antes de aparecerem no site.'); this.parentElement.style.display='none';" style="width: 100%;">Enviar Avaliação</button>
+        <button class="btn-pri" onclick="
+          if(document.getElementById('review-rating-value').value == '0') {
+            alert('Por favor, selecione uma nota clicando nas estrelinhas!');
+            return;
+          }
+          alert('Muito obrigada! Sua avaliação e fotos foram enviadas e serão analisadas pelo Ateliê Priscila Lima antes de aparecerem no site.');
+          this.parentElement.style.display='none';
+        " style="width: 100%;">Enviar Avaliação</button>
       </div>
 
       <div class="pp-reviews-list">
@@ -1007,6 +1025,35 @@ function renderSingleProduct() {
       zoomImg.style.transform = 'scale(1)';
     });
   }
+
+  // === LÓGICA DAS ESTRELAS (HOVER E CLICK) ===
+  const stars = document.querySelectorAll('.rating-star');
+  const ratingInput = document.getElementById('review-rating-value');
+  
+  if (stars.length > 0 && ratingInput) {
+    stars.forEach(star => {
+      // Quando o mouse passa por cima (Pinta de cheio até a estrela atual)
+      star.addEventListener('mouseover', function() {
+        const val = parseInt(this.getAttribute('data-value'));
+        stars.forEach(s => {
+          s.textContent = parseInt(s.getAttribute('data-value')) <= val ? '★' : '☆';
+        });
+      });
+      
+      // Quando o mouse sai de cima (Volta a pintar apenas as que já estavam clicadas)
+      star.addEventListener('mouseout', function() {
+        const val = parseInt(ratingInput.value);
+        stars.forEach(s => {
+          s.textContent = parseInt(s.getAttribute('data-value')) <= val ? '★' : '☆';
+        });
+      });
+      
+      // Quando clica (Salva o valor)
+      star.addEventListener('click', function() {
+        ratingInput.value = this.getAttribute('data-value');
+      });
+    });
+  }
 }
 
 // ==========================================
@@ -1047,6 +1094,18 @@ document.body.addEventListener('click', (e) => {
     refreshUI();
     renderCartBody();
     window.openCheckoutDirectly();
+    return;
+  }
+
+  // Lógica do Vídeo (Na Página Home / Vitrine)
+  const videoBtn = e.target.closest('.video-btn');
+  if (videoBtn) {
+    if (typeof openProductVideo === 'function') {
+        openProductVideo(
+          videoBtn.dataset.videoSrc,
+          videoBtn.dataset.videoName
+        );
+    }
     return;
   }
 
