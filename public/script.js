@@ -11,6 +11,24 @@ const CARD_FEE_PERCENT = 8.69;
 
 // Adicionados os campos: sales (vendidos), rating (nota), reviewsCount (qtd avaliações) e reviewsData (comentários/fotos)
 const PRODUCTS = [
+  // 1. ZONA DE OURO (Seus escolhidos para o topo)
+  {
+    id: 7,
+    sku: 'CENTRO-MESA-007',
+    name: 'Sousplat Marsala, Cru e Dourado',
+    cat: 'decoracao',
+    price: 40.00,
+    image: '/imagens/produto7.png',
+    video: '/videos/produto7.mp4',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
+    measure: 'Aprox. 34cm x 34cm',
+    desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.',
+    sales: 4,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
   {
     id: 1,
     sku: 'SOUSPLAT-001',
@@ -27,6 +45,24 @@ const PRODUCTS = [
     reviewsCount: 0,
     reviewsData: []
   },
+  {
+    id: 4,
+    sku: 'SOUSPLAT-COLOR-004',
+    name: 'Sousplat Redondo Candy Colors',
+    cat: 'decoracao',
+    price: 25.00,
+    image: '/imagens/produto4.png',
+    badge: 'Encantador',
+    color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
+    measure: '36cm x 36cm',
+    desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
+
+  // 2. BLOCO ESMERALDA (Combinações com o Verde Majestade)
   {
     id: 2,
     sku: 'TAPETE-OVAL-002',
@@ -61,21 +97,23 @@ const PRODUCTS = [
     reviewsData: []
   },
   {
-    id: 4,
-    sku: 'SOUSPLAT-COLOR-004',
-    name: 'Sousplat Redondo Candy Colors',
+    id: 15,
+    sku: 'SOUSPLAT-VERDE-015',
+    name: 'Sousplat Redondo Verde Artesanal',
     cat: 'decoracao',
     price: 25.00,
-    image: '/imagens/produto4.png',
-    badge: 'Encantador',
-    color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
-    measure: '36cm x 36cm',
-    desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.',
+    image: '/imagens/produto15.png',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
+    measure: 'Aprox. 36cm x 36cm',
+    desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
     sales: 0,
     rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
   },
+
+  // 3. BLOCO ROMÂNTICO (Corações)
   {
     id: 5,
     sku: 'CAMINHO-MESA-005',
@@ -94,6 +132,24 @@ const PRODUCTS = [
     reviewsData: []
   },
   {
+    id: 14,
+    sku: 'SOUSPLAT-CORACOES-014',
+    name: 'Centro de Mesa Corações Vermelhos',
+    cat: 'decoracao',
+    price: 25.00,
+    image: '/imagens/produto14.png',
+    badge: 'Romântico',
+    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
+    measure: 'Aprox. 40cm x 40cm',
+    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
+
+  // 4. BLOCO NEUTRO / CLÁSSICO
+  {
     id: 6,
     sku: 'CAMINHO-MESA-006',
     name: 'Caminho de Mesa Marrom com Dourado',
@@ -109,90 +165,8 @@ const PRODUCTS = [
     reviewsCount: 0,
     reviewsData: []
   },
-  {
-    id: 7,
-    sku: 'CENTRO-MESA-007',
-    name: 'Sousplat Marsala, Cru e Dourado',
-    cat: 'decoracao',
-    price: 40.00,
-    image: '/imagens/produto7.png',
-    video: '/videos/produto7.mp4',
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
-    measure: 'Aprox. 34cm x 34cm',
-    desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.',
-    sales: 4,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 8,
-    sku: 'PORTACOPOS-FLORAL-008',
-    name: 'Porta Copos Tulipas Vermelhas com Base Cru',
-    cat: 'decoracao',
-    price: 10.00,
-    image: '/imagens/produto8.png',
-    video: '/videos/produto8.mp4',
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#F8ECEC,#F1DADA)',
-    measure: 'Aprox. 17cm x 17cm',
-    desc: 'Porta Copos artesanal com flores vermelhas e base em tom cru.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 9,
-    sku: 'BIKINE-CROCHE-009',
-    name: 'Bikine em Crochê Vermelho Artesanal',
-    cat: 'moda',
-    price: 55.00,
-    image: '/imagens/produto9.png',
-    video: '/videos/produto9.mp4',
-    badge: 'Verao',
-    color: 'linear-gradient(135deg,#F7E9EA,#EFD6D8)',
-    measure: 'Tamanho ajustável (P/M/G/GG)',
-    desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 10,
-    sku: 'CENTRO-MESA-FLORAL-010',
-    name: 'Centro de Mesa Tulipas Rosa com Base Cru',
-    cat: 'decoracao',
-    price: 40.00,
-    image: '/imagens/produto10.png',
-    video: '/videos/produto10.mp4',
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
-    measure: 'Aprox. 40cm x 40cm',
-    desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 11,
-    sku: 'CHAVEIRO-CORACAO-011',
-    name: 'Chaveiro Coração Vermelho',
-    cat: 'decoracao',
-    price: 4.00,
-    image: '/imagens/produto11.png',
-    badge: 'Fofo',
-    color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
-    measure: 'Aprox. 5cm x 6cm',
-    desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.',
-    sales: 40,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
+
+  // 5. BLOCO MODA
   {
     id: 12,
     sku: 'BOLSA-MARINHO-12',
@@ -226,53 +200,82 @@ const PRODUCTS = [
     sales: 0,
     rating: 0.0,
     reviewsCount: 0,
-    // Exemplo de como você vai preencher os dados reais no futuro:
-    reviewsData: [
-      /*
-      {
-        author: 'Maria S.',
-        date: '10/05/2026',
-        text: 'Amei a saia! O acabamento é impecável e as pérolas dão um charme todo especial.',
-        photos: ['/imagens/foto-cliente-1.jpg', '/imagens/foto-cliente-2.jpg']
-      }
-      */
-    ]
+    reviewsData: []
   },
   {
-    id: 14,
-    sku: 'SOUSPLAT-CORACOES-014',
-    name: 'Centro de Mesa Corações Vermelhos',
-    cat: 'decoracao',
-    price: 25.00,
-    image: '/imagens/produto14.png',
-    badge: 'Romântico',
-    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
-    measure: 'Aprox. 40cm x 40cm',
-    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
+    id: 9,
+    sku: 'BIKINE-CROCHE-009',
+    name: 'Bikine em Crochê Vermelho Artesanal',
+    cat: 'moda',
+    price: 55.00,
+    image: '/imagens/produto9.png',
+    video: '/videos/produto9.mp4',
+    badge: 'Verao',
+    color: 'linear-gradient(135deg,#F7E9EA,#EFD6D8)',
+    measure: 'Tamanho ajustável (P/M/G/GG)',
+    desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.',
     sales: 0,
     rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
-},
+  },
+
+  // 6. KITS FLORAIS E ISCAS DE CARRINHO (Peças de menor valor)
   {
-    id: 15,
-    sku: 'SOUSPLAT-VERDE-015',
-    name: 'Sousplat Redondo Verde Artesanal',
+    id: 10,
+    sku: 'CENTRO-MESA-FLORAL-010',
+    name: 'Centro de Mesa Tulipas Rosa com Base Cru',
     cat: 'decoracao',
-    price: 25.00,
-    image: '/imagens/produto15.png',
+    price: 40.00,
+    image: '/imagens/produto10.png',
+    video: '/videos/produto10.mp4',
     badge: 'Novo',
-    color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
-    measure: 'Aprox. 36cm x 36cm',
-    desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
+    color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
+    measure: 'Aprox. 40cm x 40cm',
+    desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.',
     sales: 0,
     rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
-},
-   {
-    id: 16,
-    sku: 'PERSONALIZADO-016',
+  },
+  {
+    id: 8,
+    sku: 'PORTACOPOS-FLORAL-008',
+    name: 'Porta Copos Tulipas Vermelhas com Base Cru',
+    cat: 'decoracao',
+    price: 10.00,
+    image: '/imagens/produto8.png',
+    video: '/videos/produto8.mp4',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#F8ECEC,#F1DADA)',
+    measure: 'Aprox. 17cm x 17cm',
+    desc: 'Porta Copos artesanal com flores vermelhas e base em tom cru.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
+  {
+    id: 11,
+    sku: 'CHAVEIRO-CORACAO-011',
+    name: 'Chaveiro Coração Vermelho',
+    cat: 'decoracao',
+    price: 4.00,
+    image: '/imagens/produto11.png',
+    badge: 'Fofo',
+    color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
+    measure: 'Aprox. 5cm x 6cm',
+    desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.',
+    sales: 40,
+    rating: 5.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
+
+  // 7. CARD DE ENCOMENDA PERSONALIZADA
+  {
+    id: 100,
+    sku: 'PERSONALIZADO-008',
     name: 'Mande sua Inspiração',
     cat: 'decoracao',
     price: null,
@@ -282,8 +285,13 @@ const PRODUCTS = [
     measure: 'Sob encomenda',
     desc: 'Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
     custom: true,
-    buttonText: 'Solicitar'
-   },
+    buttonText: 'Solicitar',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  }
+];
 ];
 
 const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
