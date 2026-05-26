@@ -25,7 +25,7 @@ const PRODUCTS = [
     measure: 'Aprox. 34cm x 34cm',
     desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.',
     sales: 6,
-    rating: 0.0,
+    rating: 5.0,
     reviewsCount: 0,
     reviewsData: []
   },
@@ -57,7 +57,7 @@ const PRODUCTS = [
     measure: '36cm x 36cm',
     desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.',
     sales: 6,
-    rating: 0.0,
+    rating: 5.0,
     reviewsCount: 0,
     reviewsData: []
   },
@@ -108,7 +108,7 @@ const PRODUCTS = [
     measure: 'Aprox. 36cm x 36cm',
     desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
     sales: 4,
-    rating: 0.0,
+    rating: 5.0,
     reviewsCount: 0,
     reviewsData: []
   },
