@@ -14,7 +14,7 @@ const PRODUCTS = [
   // 1. ZONA DE OURO (Seus escolhidos para o topo)
   {
     id: 7,
-    sku: 'CENTRO-MESA-007',
+    sku: 'SOUSPLAT-007',
     name: 'Sousplat Marsala, Cru e Dourado',
     cat: 'decoracao',
     price: 40.00,
@@ -24,7 +24,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 34cm x 34cm',
     desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.',
-    sales: 4,
+    sales: 6,
     rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
@@ -56,7 +56,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
     measure: '36cm x 36cm',
     desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.',
-    sales: 0,
+    sales: 6,
     rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
@@ -107,7 +107,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
     measure: 'Aprox. 36cm x 36cm',
     desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
-    sales: 0,
+    sales: 4,
     rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
@@ -266,7 +266,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
     measure: 'Aprox. 5cm x 6cm',
     desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.',
-    sales: 40,
+    sales: 47,
     rating: 5.0,
     reviewsCount: 0,
     reviewsData: []
