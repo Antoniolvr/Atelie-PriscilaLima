@@ -292,7 +292,6 @@ const PRODUCTS = [
     reviewsData: []
   }
 ];
-];
 
 const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
 
