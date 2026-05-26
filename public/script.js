@@ -243,7 +243,7 @@ const PRODUCTS = [
     sku: 'SOUSPLAT-CORACOES-014',
     name: 'Centro de Mesa Corações Vermelhos',
     cat: 'decoracao',
-    price: 50.00,
+    price: 25.00,
     image: '/imagens/produto14.png',
     badge: 'Romântico',
     color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
@@ -259,7 +259,7 @@ const PRODUCTS = [
     sku: 'SOUSPLAT-VERDE-015',
     name: 'Sousplat Redondo Verde Artesanal',
     cat: 'decoracao',
-    price: 28.00,
+    price: 25.00,
     image: '/imagens/produto15.png',
     badge: 'Novo',
     color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
@@ -271,8 +271,8 @@ const PRODUCTS = [
     reviewsData: []
 },
    {
-    id: 15,
-    sku: 'PERSONALIZADO-008',
+    id: 16,
+    sku: 'PERSONALIZADO-016',
     name: 'Mande sua Inspiração',
     cat: 'decoracao',
     price: null,
