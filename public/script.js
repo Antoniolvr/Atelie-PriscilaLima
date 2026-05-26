@@ -240,6 +240,38 @@ const PRODUCTS = [
   },
   {
     id: 14,
+    sku: 'SOUSPLAT-CORACOES-014',
+    name: 'Centro de Mesa Corações Vermelhos',
+    cat: 'decoracao',
+    price: 50.00,
+    image: '/imagens/produto14.png',
+    badge: 'Romântico',
+    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
+    measure: 'Aprox. 40cm x 40cm',
+    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+},
+  {
+    id: 15,
+    sku: 'SOUSPLAT-VERDE-015',
+    name: 'Sousplat Redondo Verde Artesanal',
+    cat: 'decoracao',
+    price: 28.00,
+    image: '/imagens/produto15.png',
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
+    measure: 'Aprox. 36cm x 36cm',
+    desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+},
+   {
+    id: 15,
     sku: 'PERSONALIZADO-008',
     name: 'Mande sua Inspiração',
     cat: 'decoracao',
@@ -250,12 +282,8 @@ const PRODUCTS = [
     measure: 'Sob encomenda',
     desc: 'Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
     custom: true,
-    buttonText: 'Solicitar',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
-  }
+    buttonText: 'Solicitar'
+   },
 ];
 
 const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
