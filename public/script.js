@@ -759,11 +759,6 @@ function renderProducts() {
 
               <div class="product-actions" style="display: flex; gap: 0.55rem; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; margin-top: 0.5rem;">
                 ${p.video ? `
-                  <button class="video-btn" 
-                          data-video-src="${escapeHtml(p.video)}" 
-                          data-video-name="${safeName}">
-                    🎥 Vídeo
-                  </button>
                 ` : ''}
                 <button class="add-btn quick-buy-btn" data-product-id="${p.id}" style="position: relative; flex: 1;">
                   🛍️ Compre agora
@@ -1094,18 +1089,6 @@ document.body.addEventListener('click', (e) => {
     refreshUI();
     renderCartBody();
     window.openCheckoutDirectly();
-    return;
-  }
-
-  // Lógica do Vídeo (Na Página Home / Vitrine)
-  const videoBtn = e.target.closest('.video-btn');
-  if (videoBtn) {
-    if (typeof openProductVideo === 'function') {
-        openProductVideo(
-          videoBtn.dataset.videoSrc,
-          videoBtn.dataset.videoName
-        );
-    }
     return;
   }
 
