@@ -395,6 +395,40 @@ function createConfetti(x, y) {
   }
 }
 
+// Função para fazer a foto voar até o carrinho
+function animateFlyToCart(startElement, imageSrc) {
+  const cartBtn = document.getElementById('cart-toggle-btn');
+  if (!cartBtn) return;
+  
+  const startRect = startElement.getBoundingClientRect();
+  const targetRect = cartBtn.getBoundingClientRect();
+  
+  const flyingImg = document.createElement('img');
+  flyingImg.src = imageSrc;
+  flyingImg.className = 'flying-clone';
+  
+  // Posição inicial (em cima do botão de adicionar)
+  flyingImg.style.left = `${startRect.left + startRect.width / 2 - 30}px`;
+  flyingImg.style.top = `${startRect.top + startRect.height / 2 - 30}px`;
+  
+  document.body.appendChild(flyingImg);
+  
+  // Força o navegador a registrar a posição antes de iniciar a animação
+  flyingImg.getBoundingClientRect();
+  
+  // Posição final (no ícone do carrinho no menu)
+  flyingImg.style.left = `${targetRect.left + targetRect.width / 2 - 10}px`;
+  flyingImg.style.top = `${targetRect.top + targetRect.height / 2 - 10}px`;
+  flyingImg.style.transform = 'scale(0.1)';
+  flyingImg.style.opacity = '0';
+  
+  // Remove o clone depois que a animação termina e faz a sacola "pular"
+  setTimeout(() => {
+    flyingImg.remove();
+    bumpBadge(); 
+  }, 600); // 0.6 segundos, igualzinho ao código React que você me mandou!
+}
+
 function setPaymentStatus(msg) {
   const el = document.getElementById('payment-status');
   if (el) el.textContent = msg || '';
@@ -1147,7 +1181,7 @@ document.body.addEventListener('click', (e) => {
     return;
   }
 
-  // Botão Adicionar à Sacola
+ // Botão Adicionar à Sacola
   const btn = e.target.closest('.add-btn:not(.quick-buy-btn)');
   if (btn) {
     const id = parseInt(btn.dataset.productId, 10);
@@ -1165,12 +1199,15 @@ document.body.addEventListener('click', (e) => {
     refreshUI();
     renderCartBody();
     showToast(`${p.name} adicionado!`);
-    bumpBadge();
     
-    const rect = btn.getBoundingClientRect();
-    createConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    // Inicia a nova animação de voo (substituindo o confete)
+    animateFlyToCart(btn, p.image);
     
-    if(document.getElementById('single-product-container')) openCart();
+    // Se for na página do produto, atrasa a abertura do carrinho em quase 1 segundo
+    // para dar tempo do cliente ver a foto voando e caindo lá dentro
+    if(document.getElementById('single-product-container')) {
+       setTimeout(() => openCart(), 700);
+    }
     return;
   }
 
