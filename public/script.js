@@ -850,9 +850,8 @@ function renderProducts() {
     <div class="product-card" style="animation-delay:${i * 0.08}s; display: flex; flex-direction: column;">
       <a href="/produto.html?id=${p.id}" class="product-img" style="background:${safeColor}; text-decoration: none; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 220px;">
         ${p.custom 
-         ? `<div class="custom-visual"><div class="custom-visual-ico">✨</div><div class="custom-visual-title">Peça sob medida</div><div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div></div>`
-          : `<img src="${safeImage}" class="product-image ${p.temFundoAmbiente ? 'sem-blend' : ''}" alt="${safeName}">`
-        }
+          ? `<div class="custom-visual"><div class="custom-visual-ico">✨</div><div class="custom-visual-title">Peça sob medida</div><div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div></div>`
+          : `<img src="${safeImage}" class="product-image" alt="${safeName}">`
         }
         ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
       </a>
@@ -959,9 +958,10 @@ function renderSingleProduct() {
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
   const mediaHtml = `
-   <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
+    <div class="pp-media-gallery">
+      <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
         ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `
-          <img src="${safeImage}" id="zoom-img" class="${p.temFundoAmbiente ? 'sem-blend' : ''}" alt="${safeName}">
+          <img src="${safeImage}" id="zoom-img" alt="${safeName}">
           <video id="viewer-video" controls playsinline style="display:none; width:100%; height:100%; background:#000;"></video>
         `}
       </div>
