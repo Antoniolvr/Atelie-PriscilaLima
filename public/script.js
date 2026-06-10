@@ -182,7 +182,7 @@ const PRODUCTS = [
     cat: 'decoracao',
     price: 60.00,
     image: '/imagens/produto16.png',
-    video: '/videos/produto16.mp4',
+    video: '',
     gallery: ['imagens/produto16-modelo.png'],
     badge: 'Delicado',
     color: 'linear-gradient(135deg,#E3F0F8,#D1E5F4)',
