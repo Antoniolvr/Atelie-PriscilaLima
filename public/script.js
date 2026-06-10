@@ -9,28 +9,6 @@ function escapeHtml(str) {
 const WHATSAPP_NUMBER = '5581996809206';
 const CARD_FEE_PERCENT = 8.69;
 
-let gradeHTML = '';
-
-PRODUCTS.forEach(produto => {
-  // Se temFundoAmbiente for true, a variável recebe a classe. Se não, fica vazia.
-  const classeCondicional = produto.temFundoAmbiente ? 'sem-blend' : '';
-
-  gradeHTML += `
-    <div class="product-card">
-      <div class="product-img">
-        <img src="${produto.image}" class="product-image ${classeCondicional}" alt="${produto.name}">
-      </div>
-      
-      <div class="product-info">
-        <h3 class="product-name">${produto.name}</h3>
-      </div>
-    </div>
-  `;
-});
-
-// Injeta o HTML gerado na sua div principal
-document.querySelector('.products-grid').innerHTML = gradeHTML;
-
 // Adicionados os campos: sales (vendidos), rating (nota), reviewsCount (qtd avaliações) e reviewsData (comentários/fotos)
 const PRODUCTS = [
   // 1. ZONA DE OURO (Seus escolhidos para o topo)
