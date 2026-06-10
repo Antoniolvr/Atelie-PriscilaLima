@@ -115,6 +115,22 @@ const PRODUCTS = [
 
   // 3. BLOCO ROMÂNTICO (Corações)
   {
+    id: 14,
+    sku: 'SOUSPLAT-CORACOES-014',
+    name: 'Centro de Mesa Corações Vermelhos',
+    cat: 'decoracao',
+    price: 25.00,
+    image: '/imagens/produto14.png',
+    badge: 'Romântico',
+    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
+    measure: 'Aprox. 40cm x 40cm',
+    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
+   {
     id: 5,
     sku: 'CAMINHO-MESA-005',
     name: 'Caminho de Mesa Corações Off White com Dourado',
@@ -128,22 +144,6 @@ const PRODUCTS = [
     desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho de corações.',
     sales: 1,
     rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 14,
-    sku: 'SOUSPLAT-CORACOES-014',
-    name: 'Centro de Mesa Corações Vermelhos',
-    cat: 'decoracao',
-    price: 25.00,
-    image: '/imagens/produto14.png',
-    badge: 'Romântico',
-    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
-    measure: 'Aprox. 40cm x 40cm',
-    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
-    sales: 0,
-    rating: 0.0,
     reviewsCount: 0,
     reviewsData: []
   },
