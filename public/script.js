@@ -238,7 +238,7 @@ const PRODUCTS = [
     name: 'Bolsa de Crochê Preta com Corrente Dourada',
     cat: 'moda',
     price: 100.00,
-    image: '/imagens/produto17.jpg',
+    image: '/imagens/produto17.png',
     video: '/videos/produto17.mp4',
     gallery: ['imagens/produto17-modelo.png'],
     badge: 'Luxo',
