@@ -1356,11 +1356,6 @@ footer{
   mix-blend-mode: multiply;
 }
 
-/* --- ADICIONE ESTA NOVA CLASSE AQUI NO FINAL --- */
-.sem-blend {
-  mix-blend-mode: normal !important; /* Desativa a mistura e força a cor real */
-}
-
 /* Caixa de Compra */
 .pp-buy-box {
   border: 1px solid rgba(216,182,185,.4);
