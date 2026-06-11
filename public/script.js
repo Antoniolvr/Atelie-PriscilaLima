@@ -240,9 +240,9 @@ const PRODUCTS = [
     price: 100.00,
     image: '/imagens/produto17.png',
     video: '/videos/produto17.mp4',
-    gallery: ['imagens/produto17-modelo.png',
-              'imagens/produto17-modelo2.png',
-              'imagens/produto17-modelo3.png'],
+    gallery: ['imagens/produto17-modelo2.png',
+              'imagens/produto17-modelo3.png',
+              'imagens/produto17-modelo.png'],
     badge: 'Luxo',
     temFundoAmbiente: true,
     color: 'linear-gradient(135deg,#333333,#1A1A1A)',
@@ -499,7 +499,7 @@ function animateFlyToCart(startElement, imageSrc) {
   setTimeout(() => {
     flyingImg.remove();
     bumpBadge(); 
-  }, 600);
+  }, 600); // 0.6 segundos, igualzinho ao código React que você me mandou!
 }
 
 function setPaymentStatus(msg) {
@@ -848,15 +848,12 @@ function renderProducts() {
     const safeColor   = escapeHtml(p.color);
     const safeImage   = escapeHtml(p.image || '');
 
-    // FIX: produtos com foto de ambiente real não usam mix-blend-mode
-    const imgBlendClass = p.temFundoAmbiente ? ' sem-blend' : '';
-
     return `
     <div class="product-card" style="animation-delay:${i * 0.08}s; display: flex; flex-direction: column;">
       <a href="/produto.html?id=${p.id}" class="product-img" style="background:${safeColor}; text-decoration: none; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 220px;">
         ${p.custom 
           ? `<div class="custom-visual"><div class="custom-visual-ico">✨</div><div class="custom-visual-title">Peça sob medida</div><div class="custom-visual-sub">Transforme sua ideia em uma criação exclusiva</div></div>`
-          : `<img src="${safeImage}" class="product-image${imgBlendClass}" alt="${safeName}">`
+          : `<img src="${safeImage}" class="product-image" alt="${safeName}">`
         }
         ${safeBadge ? `<span class="product-badge">${safeBadge}</span>` : ''}
       </a>
@@ -959,30 +956,26 @@ function renderSingleProduct() {
   const safeCat = escapeHtml(CAT_LABELS[p.cat] || p.cat);
   const safeColor = escapeHtml(p.color);
   const safeImage = escapeHtml(p.image || '');
-
-  // FIX: fundo e blend mode condicionais para produtos com foto de ambiente real
-  const viewerBg   = p.temFundoAmbiente ? '#fff' : safeColor;
-  const blendClass = p.temFundoAmbiente ? 'sem-blend' : '';
   
   document.title = `${p.name} — Ateliê Priscila Lima`;
 
   const mediaHtml = `
     <div class="pp-media-gallery">
-      <div class="pp-main-viewer" id="zoom-container" style="background:${viewerBg}">
+      <div class="pp-main-viewer" id="zoom-container" style="background:${safeColor}">
         ${p.custom ? `<div class="custom-visual-ico" style="font-size: 6rem;">✨</div>` : `
-          <img src="${safeImage}" id="zoom-img" alt="${safeName}" class="${blendClass}">
+          <img src="${safeImage}" id="zoom-img" alt="${safeName}">
           <video id="viewer-video" controls playsinline style="display:none; width:100%; height:100%; background:#000;"></video>
         `}
       </div>
       ${!p.custom ? `
       <div class="pp-thumbnails">
-        <div class="pp-thumb active" data-type="image" data-src="${safeImage}" style="background:${viewerBg}">
-          <img src="${safeImage}" alt="Foto Principal" class="${blendClass}">
+        <div class="pp-thumb active" data-type="image" data-src="${safeImage}" style="background:${safeColor}">
+          <img src="${safeImage}" alt="Foto Principal">
         </div>
         
         ${p.gallery && p.gallery.length > 0 ? p.gallery.map(img => `
-          <div class="pp-thumb" data-type="image" data-src="${escapeHtml(img)}" style="background:${viewerBg}">
-            <img src="${escapeHtml(img)}" alt="Foto Extra" class="${blendClass}">
+          <div class="pp-thumb" data-type="image" data-src="${escapeHtml(img)}" style="background:${safeColor}">
+            <img src="${escapeHtml(img)}" alt="Foto Extra">
           </div>
         `).join('') : ''}
 
@@ -1065,6 +1058,7 @@ function renderSingleProduct() {
   }
   buyBoxHtml += `</div>`;
 
+  // === AQUI FICA O NOVO FORMULÁRIO DE AVALIAÇÃO COM AS ESTRELAS INTERATIVAS ===
   container.innerHTML = `
     <div class="pp-top-section">${mediaHtml}${buyBoxHtml}</div>
     <div class="pp-bottom-section">
@@ -1175,6 +1169,7 @@ function renderSingleProduct() {
   
   if (stars.length > 0 && ratingInput) {
     stars.forEach(star => {
+      // Quando o mouse passa por cima (Pinta de cheio até a estrela atual)
       star.addEventListener('mouseover', function() {
         const val = parseInt(this.getAttribute('data-value'));
         stars.forEach(s => {
@@ -1182,6 +1177,7 @@ function renderSingleProduct() {
         });
       });
       
+      // Quando o mouse sai de cima (Volta a pintar apenas as que já estavam clicadas)
       star.addEventListener('mouseout', function() {
         const val = parseInt(ratingInput.value);
         stars.forEach(s => {
@@ -1189,6 +1185,7 @@ function renderSingleProduct() {
         });
       });
       
+      // Quando clica (Salva o valor)
       star.addEventListener('click', function() {
         ratingInput.value = this.getAttribute('data-value');
       });
@@ -1276,10 +1273,11 @@ document.body.addEventListener('click', (e) => {
     renderCartBody();
     showToast(`${p.name} adicionado!`);
     
-    // Inicia a nova animação de voo
+    // Inicia a nova animação de voo (substituindo o confete)
     animateFlyToCart(btn, p.image);
     
-    // Se for na página do produto, atrasa a abertura do carrinho
+    // Se for na página do produto, atrasa a abertura do carrinho em quase 1 segundo
+    // para dar tempo do cliente ver a foto voando e caindo lá dentro
     if(document.getElementById('single-product-container')) {
        setTimeout(() => openCart(), 700);
     }
