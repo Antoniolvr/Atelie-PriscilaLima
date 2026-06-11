@@ -1036,7 +1036,7 @@ function renderSingleProduct() {
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-        <span>Sob encomenda: envio após 15 dias da compra</span>
+        <span>Sob encomenda: envio após 7 dias da compra</span>
       </div>
 
       <div class="pp-actions">
