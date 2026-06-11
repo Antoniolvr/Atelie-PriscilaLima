@@ -241,7 +241,7 @@ const PRODUCTS = [
     video: '/videos/produto17.mp4',
     gallery: [],
     badge: 'Luxo',
-    color: 'linear-gradient(135deg,#333333,#1A1A1A)',
+   color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 26cm x 15cm',
     desc: 'Bolsa artesanal em crochê na cor preta, extremamente elegante. Conta com alça de corrente dourada, alça de mão trabalhada, pingente tassel e placa dourada exclusiva.',
     sales: 0,
