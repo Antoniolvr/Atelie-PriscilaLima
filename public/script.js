@@ -84,7 +84,7 @@ const PRODUCTS = [
     badge: 'Luxo',
     color: 'linear-gradient(135deg,#F7E9EC,#EBD4D8)',
     measure: 'Aprox. 24cm x 15cm',
-    desc: 'Bolsa artesanal em crochê na cor marsala com sofisticado ponto trançado. Conta com alça de corrente dourada entrelaçada com o fio e placa exclusiva da marca. Perfeita para compor looks elegantes.',
+    desc: 'Bolsa artesanal em crochê na cor marrom com sofisticado ponto trançado. Conta com alça de corrente dourada entrelaçada com o fio e placa exclusiva da marca. Perfeita para compor looks elegantes.',
     sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
