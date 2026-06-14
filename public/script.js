@@ -350,7 +350,7 @@ const PRODUCTS = [
     price: 110.00,
     image: '/imagens/produto19.png',
     video: '/videos/produto19.mp4',
-    gallery: [],
+    gallery: ['/imagens/produto19-modelo.png'],
     badge: 'Luxo',
     color: 'linear-gradient(135deg,#F7E9EC,#EBD4D8)',
     measure: 'Aprox. 24cm x 15cm',
