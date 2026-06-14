@@ -11,7 +11,7 @@ const CARD_FEE_PERCENT = 8.69;
 
 // Adicionados os campos: sales (vendidos), rating (nota), reviewsCount (qtd avaliações) e reviewsData (comentários/fotos)
 const PRODUCTS = [
-  // 1. ZONA DE OURO (Seus escolhidos para o topo)
+  // 1. VITRINE DE DESTAQUES (Mistura estratégica de best-sellers e produtos de luxo para mostrar a variedade do Ateliê logo de cara)
   {
     id: 7,
     sku: 'SOUSPLAT-007',
@@ -25,10 +25,22 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 34cm x 34cm',
     desc: 'Sousplat em crochê artesanal com combinação sofisticada em marsala, cru e acabamento dourado.',
-    sales: 6,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 6, rating: 5.0, reviewsCount: 0, reviewsData: []
+  },
+  {
+    id: 17,
+    sku: 'BOLSA-PRETA-017',
+    name: 'Bolsa de Crochê Preta com Corrente Dourada',
+    cat: 'moda',
+    price: 100.00,
+    image: '/imagens/produto17.png',
+    video: '/videos/produto17.mp4',
+    gallery: ['imagens/produto17-modelo2.png', 'imagens/produto17-modelo3.png', 'imagens/produto17-modelo.png'],
+    badge: 'Luxo',
+    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
+    measure: 'Aprox. 26cm x 15cm',
+    desc: 'Bolsa artesanal em crochê na cor preta, extremamente elegante. Conta com alça de corrente dourada, alça de mão trabalhada, pingente tassel e placa dourada exclusiva.',
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
     id: 1,
@@ -42,10 +54,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F2E2E4,#E8CDD0)',
     measure: '38cm x 38cm',
     desc: 'Sousplat artesanal em crochê com acabamento delicado para valorizar sua mesa com charme e elegância.',
-    sales: 4,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 4, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
   {
     id: 4,
@@ -59,86 +68,58 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#FFF1F5,#FDE6EE)',
     measure: '36cm x 36cm',
     desc: 'Sousplat redondo em crochê com combinação delicada de tons candy: rosa, amarelo, azul e base clara.',
-    sales: 6,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 6, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
 
-  // 2. BLOCO ESMERALDA (Combinações com o Verde Majestade)
+  // 2. BLOCO MODA & ELEGÂNCIA (Juntando todas as bolsas maravilhosas para gerar desejo)
   {
-    id: 2,
-    sku: 'TAPETE-OVAL-002',
-    name: 'Tapete Oval Verde e Off White',
-    cat: 'decoracao',
-    price: 35.00,
-    image: '/imagens/produto2.webp',
-    video: '/videos/produto2.mp4',
-    gallery: [],
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#E8F1EC,#D9E9E0)',
-    measure: '58cm x 38cm',
-    desc: 'Peça artesanal em formato oval com composição elegante em verde e off white.',
-    sales: 1,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
+    id: 19,
+    sku: 'BOLSA-MARROM-019',
+    name: 'Bolsa de Crochê Marrom com Corrente Dourada',
+    cat: 'moda',
+    price: 110.00,
+    image: '/imagens/produto19.png',
+    video: '/videos/produto19.mp4',
+    gallery: ['/imagens/produto19-modelo.png'],
+    badge: 'Luxo',
+    color: 'linear-gradient(135deg,#F7E9EC,#EBD4D8)',
+    measure: 'Aprox. 24cm x 15cm',
+    desc: 'Bolsa artesanal em crochê na cor marsala com sofisticado ponto trançado. Conta com alça de corrente dourada entrelaçada com o fio e placa exclusiva da marca. Perfeita para compor looks elegantes.',
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
-    id: 3,
-    sku: 'CENTRO-MESA-003',
-    name: 'Sousplat Redondo Verde com Dourado',
-    cat: 'decoracao',
-    price: 25.00,
-    image: '/imagens/produto3.png',
+    id: 12,
+    sku: 'BOLSA-MARINHO-12',
+    name: 'Bolsa de Crochê Azul Marinho com Alça trançada',
+    cat: 'moda',
+    price: 90.00,
+    image: '/imagens/produto12.png',
+    video: '/videos/produto12.mp4',
     gallery: [],
-    badge: 'Destaque',
-    color: 'linear-gradient(135deg,#E7EFE5,#DCE9D7)',
-    measure: '36cm x 36cm',
-    desc: 'Sousplat em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado.',
-    sales: 4,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 15,
-    sku: 'SOUSPLAT-VERDE-015',
-    name: 'Sousplat Redondo Verde Artesanal',
-    cat: 'decoracao',
-    price: 25.00,
-    image: '/imagens/produto15.png',
-    gallery: [],
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
-    measure: 'Aprox. 36cm x 36cm',
-    desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
-    sales: 4,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
+    badge: 'Lancamento',
+    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
+    measure: 'Aprox. 17cm x 17cm',
+    desc: 'Bolsa artesanal em crochê na cor azul marinho, com textura sofisticada em relevo, alça trançada e argolas com acabamento dourado. Uma peça elegante e exclusiva.',
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
 
-  // 3. BLOCO ROMÂNTICO (Corações)
+  // 3. DECORAÇÃO PREMIUM (Peças de maior valor e conjuntos de mesa)
   {
-    id: 14,
-    sku: 'SOUSPLAT-CORACOES-014',
-    name: 'Centro de Mesa Corações Vermelhos',
+    id: 18,
+    sku: 'KIT-BANHEIRO-018',
+    name: 'Jogo de Banheiro Crochê Marrom e Cru 3 Peças',
     cat: 'decoracao',
-    price: 25.00,
-    image: '/imagens/produto14.png',
-    video: '/videos/produto14.mp4',
-    gallery: [],
-    badge: 'Romântico',
-    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
-    measure: 'Aprox. 40cm x 40cm',
-    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    price: 150.00,
+    image: '/imagens/produto18.png',
+    video: '/videos/produto18.mp4',
+    gallery: ['/imagens/produto18-modelo.png'],
+    badge: 'Conjunto',
+    color: 'linear-gradient(135deg,#F3ECE7,#E8DDD4)',
+    measure: 'Tamanhos variados (3 peças)',
+    desc: 'Lindo jogo de tapetes para banheiro em crochê contendo 3 peças. Composição clássica nas cores marrom e cru com contornos ondulados.',
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
-   {
+  {
     id: 5,
     sku: 'CAMINHO-MESA-005',
     name: 'Caminho de Mesa Corações Off White com Dourado',
@@ -151,29 +132,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#FFF8F1,#F8EEDC)',
     measure: '100cm~120cm x 20cm',
     desc: 'Caminho de mesa em crochê artesanal na cor off white com acabamento dourado e delicado desenho de corações.',
-    sales: 1,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-
-  // 4. BLOCO NEUTRO / CLÁSSICO
-  {
-    id: 6,
-    sku: 'CAMINHO-MESA-006',
-    name: 'Caminho de Mesa Marrom com Dourado',
-    cat: 'decoracao',
-    price: 60.00,
-    image: '/imagens/produto6.png',
-    gallery: [],
-    badge: 'Novo',
-    color: 'linear-gradient(135deg,#F3ECE7,#E8DDD4)',
-    measure: '95cm x 22cm',
-    desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados e acabamento delicado.',
-    sales: 1,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 1, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
   {
     id: 16,
@@ -188,69 +147,84 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#E3F0F8,#D1E5F4)',
     measure: 'Aprox. 100cm x 19cm',
     desc: 'Caminho de mesa em crochê artesanal na cor azul claro, com pontos vazados e um elegante fio dourado contornando a peça.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
-    id: 18,
-    sku: 'KIT-BANHEIRO-018',
-    name: 'Jogo de Banheiro Crochê Marrom e Cru 3 Peças',
+    id: 6,
+    sku: 'CAMINHO-MESA-006',
+    name: 'Caminho de Mesa Marrom com Dourado',
     cat: 'decoracao',
-    price: 150.00,
-    image: '/imagens/produto18.png',
-    video: '/videos/produto18.mp4',
-    gallery: ['/imagens/produto18-modelo.png'],
-    badge: 'Conjunto',
+    price: 60.00,
+    image: '/imagens/produto6.png',
+    gallery: [],
+    badge: 'Novo',
     color: 'linear-gradient(135deg,#F3ECE7,#E8DDD4)',
-    measure: 'Tamanhos variados (3 peças)',
-    desc: 'Lindo jogo de tapetes para banheiro em crochê contendo 3 peças. Composição clássica nas cores marrom e cru com contornos ondulados.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    measure: '95cm x 22cm',
+    desc: 'Caminho de mesa em crochê artesanal na cor marrom com detalhes dourados e acabamento delicado.',
+    sales: 1, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
 
-  // 5. BLOCO MODA
+  // 4. COLEÇÃO ESMERALDA E ROMÂNTICA
   {
-    id: 12,
-    sku: 'BOLSA-MARINHO-12',
-    name: 'Bolsa de Crochê Azul Marinho com Alça trançada',
-    cat: 'moda',
-    price: 90.00,
-    image: '/imagens/produto12.png',
-    video: '/videos/produto12.mp4',
+    id: 2,
+    sku: 'TAPETE-OVAL-002',
+    name: 'Tapete Oval Verde e Off White',
+    cat: 'decoracao',
+    price: 35.00,
+    image: '/imagens/produto2.webp',
+    video: '/videos/produto2.mp4',
     gallery: [],
-    badge: 'Lancamento',
-    color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
-    measure: 'Aprox. 17cm x 17cm',
-    desc: 'Bolsa artesanal em crochê na cor azul marinho, com textura sofisticada em relevo, alça trançada e argolas com acabamento dourado. Uma peça elegante e exclusiva.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#E8F1EC,#D9E9E0)',
+    measure: '58cm x 38cm',
+    desc: 'Peça artesanal em formato oval com composição elegante em verde e off white.',
+    sales: 1, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
   {
-    id: 17,
-    sku: 'BOLSA-PRETA-017',
-    name: 'Bolsa de Crochê Preta com Corrente Dourada',
-    cat: 'moda',
-    price: 100.00,
-    image: '/imagens/produto17.png',
-    video: '/videos/produto17.mp4',
-    gallery: ['imagens/produto17-modelo2.png',
-              'imagens/produto17-modelo3.png',
-              'imagens/produto17-modelo.png'],
-    badge: 'Luxo',
-   color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
-    measure: 'Aprox. 26cm x 15cm',
-    desc: 'Bolsa artesanal em crochê na cor preta, extremamente elegante. Conta com alça de corrente dourada, alça de mão trabalhada, pingente tassel e placa dourada exclusiva.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    id: 3,
+    sku: 'CENTRO-MESA-003',
+    name: 'Sousplat Redondo Verde com Dourado',
+    cat: 'decoracao',
+    price: 25.00,
+    image: '/imagens/produto3.png',
+    gallery: [],
+    badge: 'Destaque',
+    color: 'linear-gradient(135deg,#E7EFE5,#DCE9D7)',
+    measure: '36cm x 36cm',
+    desc: 'Sousplat em crochê artesanal com formato redondo, tom verde suave e delicado detalhe dourado.',
+    sales: 4, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
+  {
+    id: 15,
+    sku: 'SOUSPLAT-VERDE-015',
+    name: 'Sousplat Redondo Verde Artesanal',
+    cat: 'decoracao',
+    price: 25.00,
+    image: '/imagens/produto15.png',
+    gallery: [],
+    badge: 'Novo',
+    color: 'linear-gradient(135deg,#E6F0E7,#D6E6D7)',
+    measure: 'Aprox. 36cm x 36cm',
+    desc: 'Sousplat redondo em crochê artesanal na cor verde, com acabamento delicado e design elegante para compor mesas sofisticadas.',
+    sales: 4, rating: 5.0, reviewsCount: 0, reviewsData: []
+  },
+  {
+    id: 14,
+    sku: 'SOUSPLAT-CORACOES-014',
+    name: 'Centro de Mesa Corações Vermelhos',
+    cat: 'decoracao',
+    price: 25.00,
+    image: '/imagens/produto14.png',
+    video: '/videos/produto14.mp4',
+    gallery: [],
+    badge: 'Romântico',
+    color: 'linear-gradient(135deg,#FCEBEC,#F5DADA)',
+    measure: 'Aprox. 40cm x 40cm',
+    desc: 'Centro de mesa artesanal em crochê com detalhes de corações vermelhos e acabamento delicado em tom cru. Ideal para decoração elegante e romântica.',
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
+  },
+
+  // 5. MODA VERÃO E PRAIA
   { 
     id: 13, 
     sku: 'SAIA-ROSA-013', 
@@ -264,10 +238,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)', 
     measure: 'Tamanho ajustável (peça sob medida)', 
     desc: 'Saída de banho artesanal na cor rosa vibrante. Possui trama vazada, ajuste na cintura com amarração, aplicação delicada de pérolas e lindo caimento com franjas na barra.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
     id: 9,
@@ -282,13 +253,10 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F7E9EA,#EFD6D8)',
     measure: 'Tamanho ajustável (P/M/G/GG)',
     desc: 'Bikine em crochê vermelho com amarração ajustável e acabamento delicado.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
 
-  // 6. KITS FLORAIS E ISCAS DE CARRINHO (Peças de menor valor)
+  // 6. MIMOS, FLORAIS E COMPLEMENTOS (Iscas de Carrinho perfeitas para o fim da página)
   {
     id: 10,
     sku: 'CENTRO-MESA-FLORAL-010',
@@ -302,10 +270,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F8ECEF,#F1DADD)',
     measure: 'Aprox. 40cm x 40cm',
     desc: 'Centro de mesa em crochê com delicado acabamento floral em Tulipas de tons rosa e verde, perfeito para decoração elegante.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
     id: 8,
@@ -320,10 +285,7 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#F8ECEC,#F1DADA)',
     measure: 'Aprox. 17cm x 17cm',
     desc: 'Porta Copos artesanal com flores vermelhas e base em tom cru.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 0, rating: 0.0, reviewsCount: 0, reviewsData: []
   },
   {
     id: 11,
@@ -337,31 +299,10 @@ const PRODUCTS = [
     color: 'linear-gradient(135deg,#FDEBEC,#F8D7DA)',
     measure: 'Aprox. 5cm x 6cm',
     desc: 'Chaveiro artesanal em formato de coração, feito em crochê vermelho com acabamento macio e delicado. Ideal para presentear.',
-    sales: 47,
-    rating: 5.0,
-    reviewsCount: 0,
-    reviewsData: []
-  },
-  {
-    id: 19,
-    sku: 'BOLSA-MARSALA-019',
-    name: 'Bolsa de Crochê Marsala com Corrente Dourada',
-    cat: 'moda',
-    price: 110.00,
-    image: '/imagens/produto19.png',
-    video: '/videos/produto19.mp4',
-    gallery: ['/imagens/produto19-modelo.png'],
-    badge: 'Luxo',
-    color: 'linear-gradient(135deg,#F7E9EC,#EBD4D8)',
-    measure: 'Aprox. 24cm x 15cm',
-    desc: 'Bolsa artesanal em crochê na cor marsala com sofisticado ponto trançado. Conta com alça de corrente dourada entrelaçada com o fio e placa exclusiva da marca. Perfeita para compor looks elegantes.',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
+    sales: 47, rating: 5.0, reviewsCount: 0, reviewsData: []
   },
 
-  // 7. CARD DE ENCOMENDA PERSONALIZADA
+  // 7. CARD DE ENCOMENDA PERSONALIZADA (Sempre por último)
   {
     id: 100,
     sku: 'PERSONALIZADO-008',
@@ -376,11 +317,7 @@ const PRODUCTS = [
     desc: 'Envie sua inspiração no WhatsApp com foto, cores e medidas para receber atendimento personalizado.',
     custom: true,
     buttonText: 'Solicitar',
-    sales: 0,
-    rating: 0.0,
-    reviewsCount: 0,
-    reviewsData: []
-  }
+  },
 ];
 const CATALOG = PRODUCTS.reduce((acc, item) => { acc[item.id] = item; return acc; }, {});
 
