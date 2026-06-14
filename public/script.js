@@ -342,6 +342,24 @@ const PRODUCTS = [
     reviewsCount: 0,
     reviewsData: []
   },
+  {
+    id: 19,
+    sku: 'BOLSA-MARSALA-019',
+    name: 'Bolsa de Crochê Marsala com Corrente Dourada',
+    cat: 'moda',
+    price: 110.00,
+    image: '/imagens/produto19.png',
+    video: '/videos/produto19.mp4',
+    gallery: [],
+    badge: 'Luxo',
+    color: 'linear-gradient(135deg,#F7E9EC,#EBD4D8)',
+    measure: 'Aprox. 24cm x 15cm',
+    desc: 'Bolsa artesanal em crochê na cor marsala com sofisticado ponto trançado. Conta com alça de corrente dourada entrelaçada com o fio e placa exclusiva da marca. Perfeita para compor looks elegantes.',
+    sales: 0,
+    rating: 0.0,
+    reviewsCount: 0,
+    reviewsData: []
+  },
 
   // 7. CARD DE ENCOMENDA PERSONALIZADA
   {
