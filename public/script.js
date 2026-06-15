@@ -77,7 +77,7 @@ const PRODUCTS = [
     sku: 'BOLSA-MARROM-019',
     name: 'Bolsa de Crochê Marrom com Corrente Dourada',
     cat: 'moda',
-    price: 110.00,
+    price: 100.00,
     image: '/imagens/produto19.png',
     video: '/videos/produto19.mp4',
     gallery: ['/imagens/produto19-modelo.png'],
