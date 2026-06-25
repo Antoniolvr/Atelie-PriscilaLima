@@ -35,7 +35,7 @@ const PRODUCTS = [
     price: 100.00,
     image: '/imagens/produto17.png',
     video: '/videos/produto17.mp4',
-    gallery: ['imagens/produto17-modelo2.png', 'imagens/produto17-modelo3.png', 'imagens/produto17-modelo.png'],
+    gallery: ['imagens/produto17-modelo2.png', 'imagens/produto17-modelo3.png', 'imagens/produto17-modelo.png', 'videos/produto17-2.mp4'],
     badge: 'Luxo',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
     measure: 'Aprox. 26cm x 15cm',
