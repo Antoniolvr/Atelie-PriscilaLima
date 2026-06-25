@@ -34,7 +34,7 @@ const PRODUCTS = [
     cat: 'moda',
     price: 100.00,
     image: '/imagens/produto17.png',
-    video: ['/videos/produto17.mp4','/videos/produto17-2.mp4'],
+    video: '/videos/produto17.mp4',
     gallery: ['imagens/produto17-modelo2.png', 'imagens/produto17-modelo3.png', 'imagens/produto17-modelo.png'],
     badge: 'Luxo',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
