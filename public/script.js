@@ -35,6 +35,7 @@ const PRODUCTS = [
     price: 100.00,
     image: '/imagens/produto17.png',
     video: '/videos/produto17.mp4',
+    video2: '/videos/produto17-2.mp4',
     gallery: ['imagens/produto17-modelo2.png', 'imagens/produto17-modelo3.png', 'imagens/produto17-modelo.png'],
     badge: 'Luxo',
     color: 'linear-gradient(135deg,#F7EEF0,#EAD8DC)',
@@ -936,6 +937,12 @@ function renderSingleProduct() {
         <div class="pp-thumb" data-type="video" data-src="${escapeHtml(p.video)}" style="position:relative; background:#000;">
           <span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:1.2rem; pointer-events:none;">▶</span>
           <video src="${escapeHtml(p.video)}" style="opacity:0.7"></video>
+        </div>
+        ` : ''}
+        ${p.video2 ? `
+        <div class="pp-thumb" data-type="video" data-src="${escapeHtml(p.video2)}" style="position:relative; background:#000;">
+          <span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; font-size:1.2rem; pointer-events:none;">▶</span>
+          <video src="${escapeHtml(p.video2)}" style="opacity:0.7"></video>
         </div>
         ` : ''}
       </div>
